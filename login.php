@@ -1,10 +1,8 @@
 <?php
 session_start();
-
 include 'app/auth/auth.php';
 date_default_timezone_set('Asia/Jakarta');
 
-// Cek jika tidak ada user
 $sql_check_users = "SELECT COUNT(*) FROM users";
 $stmt_check_users = $pdo->prepare($sql_check_users);
 $stmt_check_users->execute();
@@ -21,7 +19,6 @@ $password = "";
 $error_message = "";
 $show_error = false;
 
-// Fungsi deteksi browser & OS
 function getBrowser() {
     $userAgent = $_SERVER['HTTP_USER_AGENT'];
     $browser = "Unknown Browser";
@@ -72,7 +69,6 @@ function getDeviceFingerprint() {
         $fingerprint['platform'] = $matches[1];
     }
 
-    $fingerprint['screen'] = '<script>document.write(screen.width+"x"+screen.height+"x"+screen.colorDepth);</script>';
     $fingerprint['timezone'] = date_default_timezone_get();
 
     if (isset($_SERVER['HTTP_ACCEPT_LANGUAGE'])) {
@@ -96,6 +92,17 @@ function getDeviceFingerprint() {
     ];
 }
 
+function hitungJarak($lat1, $lon1, $lat2, $lon2) {
+    $R = 6371;
+    $dLat = deg2rad($lat2 - $lat1);
+    $dLon = deg2rad($lon2 - $lon1);
+    $a = sin($dLat/2) * sin($dLat/2) +
+         cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
+         sin($dLon/2) * sin($dLon/2);
+    $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+    return $R * $c;
+}
+
 function hasRegisteredDevice($pdo, $user_id) {
     $sql = "SELECT COUNT(*) FROM log_akses WHERE user_id = :user_id AND device_hash IS NOT NULL";
     $stmt = $pdo->prepare($sql);
@@ -117,7 +124,6 @@ function isMatchingDevice($pdo, $user_id, $device_hash) {
     return $device_hash === $registeredHash;
 }
 
-// Tambahkan fungsi generate QR code
 function insertQRCode($pdo, $pegawai_id) {
     $kode = substr(str_shuffle('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'), 0, 6);
     $sql = "INSERT INTO qr_code (pegawai_id, kode_unik, created_at, is_used) VALUES (:pegawai_id, :kode_unik, NOW(), 0)";
@@ -129,7 +135,6 @@ function insertQRCode($pdo, $pegawai_id) {
     return $kode;
 }
 
-// Handle login success
 function loginUser($pdo, $user, $device_info, $status) {
     $_SESSION['loggedin'] = true;
     $_SESSION['username'] = $user['username'];
@@ -152,18 +157,18 @@ function loginUser($pdo, $user, $device_info, $status) {
         ':status' => $status
     ]);
 
-    if ($user['role'] === 'staff') {
+    if ($user['role'] === 'karyawan') {
         insertQRCode($pdo, $user['id']);
     }
 
-    header('Location: ' . ($user['role'] == 'owner' ? 'app/pages/owner/dashboard.php' : 'app/pages/staff/attendance.php'));
+    header('Location: ' . ($user['role'] == 'owner' ? 'app/pages/owner/absen.php' : 'app/pages/karyawan/schedule.php'));
     exit;
 }
-
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
     $username = trim($_POST["username"]);
     $password = trim($_POST["password"]);
     $device_info = getDeviceFingerprint();
+    $show_error = false;
 
     if (empty($username)) {
         $error_message = "Mohon masukkan username.";
@@ -181,17 +186,41 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
 
             if ($stmt->rowCount() == 1) {
                 $row = $stmt->fetch(PDO::FETCH_ASSOC);
-
+            
                 if (password_verify($password, $row['password'])) {
-                    if (hasRegisteredDevice($pdo, $row['id'])) {
-                        if (!isMatchingDevice($pdo, $row['id'], $device_info['hash'])) {
-                            $error_message = "Perangkat tidak dikenal. Mohon gunakan perangkat yang sudah terdaftar atau hubungi owner.";
-                            $show_error = true;
+                    // Ambil device info
+                    $device_info = getDeviceFingerprint();
+            
+                    // 🌍 Jika karyawan, lakukan validasi lokasi
+if ($row['role'] === 'karyawan') {
+    $lat = isset($_POST['lat']) ? floatval($_POST['lat']) : null;
+    $lon = isset($_POST['lon']) ? floatval($_POST['lon']) : null;
+
+    if (!$lat || !$lon) {
+        $error_message = "Lokasi tidak ditemukan. Aktifkan GPS.";
+        $show_error = true;
+    } else {
+        $jarak = hitungJarak($lat, $lon, 3.7571051, 98.2714716);
+        if ($jarak > 0.6) {
+            $error_message = "Anda di luar radius kantor (" . round($jarak, 2) . " km)";
+            $show_error = true;
+        }
+    }
+}
+
+            
+                    // Jika tidak ada error dari lokasi, lanjut cek perangkat
+                    if (!$show_error) {
+                        if (hasRegisteredDevice($pdo, $row['id'])) {
+                            if (!isMatchingDevice($pdo, $row['id'], $device_info['hash'])) {
+                                $error_message = "Perangkat tidak dikenal. Gunakan perangkat terdaftar atau hubungi admin.";
+                                $show_error = true;
+                            } else {
+                                loginUser($pdo, $row, $device_info, 'login');
+                            }
                         } else {
-                            loginUser($pdo, $row, $device_info, 'login');
+                            loginUser($pdo, $row, $device_info, 'first_registration');
                         }
-                    } else {
-                        loginUser($pdo, $row, $device_info, 'first_registration');
                     }
                 } else {
                     $error_message = "Username atau password salah.";
@@ -201,14 +230,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
                 $error_message = "Username atau password salah.";
                 $show_error = true;
             }
+            
         } catch (PDOException $e) {
             $error_message = "Terjadi kesalahan sistem. Silakan coba lagi.";
             $show_error = true;
         }
     }
 }
+
 unset($pdo);
 ?>
+
 
 
 <!DOCTYPE html>
@@ -428,10 +460,12 @@ unset($pdo);
                         errorAlert.style.display = 'none';
                     }, 5000);
                 }
-            </script>
+</script>
         <?php endif; ?>
 
         <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post" class="form">
+        <input type="hidden" name="lat" id="lat">
+<input type="hidden" name="lon" id="lon">
             <div class="form-group">
                 <label for="username" class="label">Username</label>
                 <input type="text" id="username" name="username" class="input"
@@ -450,6 +484,20 @@ unset($pdo);
             </button>
         </form>
     </div>
+    
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function (pos) {
+            document.getElementById('lat').value = pos.coords.latitude;
+            document.getElementById('lon').value = pos.coords.longitude;
+        }, function () {
+            alert("❌ Gagal mendapatkan lokasi. Aktifkan GPS.");
+        });
+    } else {
+        alert("Browser tidak mendukung geolocation.");
+    }
+});
+</script>
 </body>
-
 </html>

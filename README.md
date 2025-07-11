@@ -3,7 +3,7 @@
 ### 1. Clone Repositori
 Clone repositori ini ke dalam server atau komputer lokal dengan perintah berikut:
 ```bash
-git clone https://github.com/username/absen.git
+git clone https://github.com/qilaa1/absen.git
 ```
 
 ### 2. Konfigurasi File `auth.php`

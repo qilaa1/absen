@@ -334,45 +334,39 @@ if (isset($_POST['delete_user'])) {
     try {
         $pdo->beginTransaction();
 
-        // Get pegawai_id first since we'll need it for other deletions
+        // Ambil ID pegawai
         $stmt = $pdo->prepare("SELECT id FROM pegawai WHERE user_id = :user_id");
         $stmt->execute(['user_id' => $_POST['user_id']]);
         $pegawai = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($pegawai) {
-            // Delete from izin first (references pegawai)
-            $stmt = $pdo->prepare("DELETE FROM izin WHERE pegawai_id = :pegawai_id");
-            $stmt->execute(['pegawai_id' => $pegawai['id']]);
+            $pegawai_id = $pegawai['id'];
 
-            // Delete from cuti (references pegawai)
-            $stmt = $pdo->prepare("DELETE FROM cuti WHERE pegawai_id = :pegawai_id");
-            $stmt->execute(['pegawai_id' => $pegawai['id']]);
+            // Hapus dari tabel-tabel yang tergantung pada pegawai_id
+            $tablesToDelete = ['izin', 'cuti', 'absensi', 'jadwal_shift', 'qr_code'];
+            foreach ($tablesToDelete as $table) {
+                $stmt = $pdo->prepare("DELETE FROM $table WHERE pegawai_id = :pegawai_id");
+                $stmt->execute(['pegawai_id' => $pegawai_id]);
+            }
 
-            // Delete from absensi (references pegawai)
-            $stmt = $pdo->prepare("DELETE FROM absensi WHERE pegawai_id = :pegawai_id");
-            $stmt->execute(['pegawai_id' => $pegawai['id']]);
-
-            // Delete from jadwal_shift (references pegawai)
-            $stmt = $pdo->prepare("DELETE FROM jadwal_shift WHERE pegawai_id = :pegawai_id");
-            $stmt->execute(['pegawai_id' => $pegawai['id']]);
-
-            // Delete from pegawai (references user)
+            // Hapus dari pegawai
             $stmt = $pdo->prepare("DELETE FROM pegawai WHERE id = :pegawai_id");
-            $stmt->execute(['pegawai_id' => $pegawai['id']]);
+            $stmt->execute(['pegawai_id' => $pegawai_id]);
         }
 
-        // Delete from log_akses (references user)
+        // Hapus dari log_akses
         $stmt = $pdo->prepare("DELETE FROM log_akses WHERE user_id = :user_id");
         $stmt->execute(['user_id' => $_POST['user_id']]);
 
-        // Finally delete from users
+        // (Opsional) Hapus dari otp_code jika ada
+        if (!empty($_POST['otp_id'])) {
+            $stmt = $pdo->prepare("DELETE FROM otp_code WHERE id = :otp_id");
+            $stmt->execute(['otp_id' => $_POST['otp_id']]);
+        }
+
+        // Terakhir, hapus dari users
         $stmt = $pdo->prepare("DELETE FROM users WHERE id = :user_id");
         $stmt->execute(['user_id' => $_POST['user_id']]);
-
-        if ($otpId) {
-            $stmt = $pdo->prepare("DELETE FROM otp_code WHERE id = :otp_id");
-            $stmt->execute(['otp_id' => $otpId]);
-        }
 
         $pdo->commit();
         $_SESSION['alert'] = [
@@ -389,6 +383,7 @@ if (isset($_POST['delete_user'])) {
     header('Location: ' . $_SERVER['PHP_SELF']);
     exit;
 }
+
 
 // Di bagian remove device
 if (isset($_POST['remove_device'])) {
