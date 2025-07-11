@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 16 Jun 2025 pada 22.09
+-- Waktu pembuatan: 11 Jul 2025 pada 13.59
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.1.25
 
@@ -18,7 +18,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `absen`
+-- Database: `absensi`
 --
 
 DELIMITER $$
@@ -243,14 +243,6 @@ CREATE TABLE `absensi` (
   `tanggal` timestamp NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
---
--- Dumping data untuk tabel `absensi`
---
-
-INSERT INTO `absensi` (`id`, `pegawai_id`, `jadwal_shift_id`, `waktu_masuk`, `waktu_keluar`, `kode_unik`, `status_kehadiran`, `keterangan`, `tanggal`) VALUES
-(23, 1, 1, '09:00:54', '00:00:00', 'Rd2SOF', 'terlambat', NULL, '2025-06-13 17:00:00'),
-(24, 2, 2, '09:02:20', '09:07:37', 'NekrHm', 'hadir', NULL, '2025-06-13 17:00:00');
-
 -- --------------------------------------------------------
 
 --
@@ -353,7 +345,11 @@ INSERT INTO `divisi` (`id`, `nama_divisi`, `created_at`) VALUES
 (1, 'IT', '2024-10-23 02:54:41'),
 (2, 'HR', '2024-10-23 02:54:41'),
 (3, 'Finance', '2024-10-23 02:54:41'),
-(4, 'Marketing', '2024-10-23 02:54:41');
+(4, 'Marketing', '2024-10-23 02:54:41'),
+(5, 'IT', '2024-10-23 02:54:41'),
+(6, 'HR', '2024-10-23 02:54:41'),
+(7, 'Finance', '2024-10-23 02:54:41'),
+(8, 'Marketing', '2024-10-23 02:54:41');
 
 --
 -- Trigger `divisi`
@@ -445,8 +441,38 @@ CREATE TABLE `jadwal_shift` (
 --
 
 INSERT INTO `jadwal_shift` (`id`, `pegawai_id`, `shift_id`, `tanggal`, `status`) VALUES
-(1, 1, 75591, '2025-06-14', 'aktif'),
-(2, 2, 75591, '2025-06-14', 'aktif');
+(2, 2, 75591, '2025-06-14', 'aktif'),
+(4, 2, 75591, '2025-06-27', 'aktif'),
+(6, 2, 75591, '2025-06-28', 'aktif'),
+(8, 2, 75591, '2025-06-30', 'aktif'),
+(10, 2, 75591, '2025-07-01', 'aktif'),
+(12, 2, 75591, '2025-07-02', 'aktif'),
+(14, 2, 75591, '2025-07-03', 'aktif'),
+(16, 2, 75591, '2025-07-04', 'aktif'),
+(18, 2, 75591, '2025-07-05', 'aktif'),
+(20, 2, 75591, '2025-07-06', 'aktif'),
+(22, 2, 75591, '2025-07-07', 'aktif'),
+(23, 3, 75590, '2025-07-07', 'aktif'),
+(24, 4, 75589, '2025-07-07', 'aktif'),
+(25, 2, 75591, '2025-07-08', 'aktif'),
+(26, 3, 75590, '2025-07-08', 'aktif'),
+(27, 4, 75589, '2025-07-08', 'aktif'),
+(28, 2, 75591, '2025-06-14', 'aktif'),
+(29, 2, 75591, '2025-06-27', 'aktif'),
+(30, 2, 75591, '2025-06-28', 'aktif'),
+(31, 2, 75591, '2025-06-30', 'aktif'),
+(32, 2, 75591, '2025-07-01', 'aktif'),
+(33, 2, 75591, '2025-07-02', 'aktif'),
+(34, 2, 75591, '2025-07-03', 'aktif'),
+(35, 2, 75591, '2025-07-04', 'aktif'),
+(36, 2, 75591, '2025-07-05', 'aktif'),
+(37, 2, 75591, '2025-07-06', 'aktif'),
+(38, 2, 75591, '2025-07-07', 'aktif'),
+(39, 3, 75590, '2025-07-07', 'aktif'),
+(40, 4, 75589, '2025-07-07', 'aktif'),
+(41, 2, 75591, '2025-07-08', 'aktif'),
+(42, 3, 75590, '2025-07-08', 'aktif'),
+(43, 4, 75589, '2025-07-08', 'aktif');
 
 --
 -- Trigger `jadwal_shift`
@@ -478,40 +504,6 @@ CREATE TABLE `log_akses` (
   `device_details` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
---
--- Dumping data untuk tabel `log_akses`
---
-
-INSERT INTO `log_akses` (`id`, `user_id`, `waktu`, `ip_address`, `device_info`, `status`, `device_hash`, `device_details`) VALUES
-(127828, 376804, '2025-06-14 09:02:42', '::1', 'Google Chrome | Windows', 'login', 'a2c78f7cc9835ae1627b99b5083e8099bfb906b9c90cd362c0c1967b74225f31', '{\"platform\":\"Windows NT 10.0; Win64; x64\",\"screen\":\"<script>document.write(screen.width+\\\"x\\\"+screen.height+\\\"x\\\"+screen.colorDepth);<\\/script>\",\"timezone\":\"Asia\\/Jakarta\",\"languages\":\"id,en;q=0.9,en-US;q=0.8,pt-BR;q=0.7,pt;q=0.6\",\"HTTP_ACCEPT\":\"text\\/html,application\\/xhtml+xml,application\\/xml;q=0.9,image\\/avif,image\\/webp,image\\/apng,*\\/*;q=0.8,application\\/signed-exchange;v=b3;q=0.7\",\"HTTP_ACCEPT_ENCODING\":\"gzip, deflate, br, zstd\",\"is_mobile\":\"true\"}'),
-(130791, 376804, '2025-06-14 09:06:47', '::1', 'Google Chrome | Windows', 'login', 'a2c78f7cc9835ae1627b99b5083e8099bfb906b9c90cd362c0c1967b74225f31', '{\"platform\":\"Windows NT 10.0; Win64; x64\",\"screen\":\"<script>document.write(screen.width+\\\"x\\\"+screen.height+\\\"x\\\"+screen.colorDepth);<\\/script>\",\"timezone\":\"Asia\\/Jakarta\",\"languages\":\"id,en;q=0.9,en-US;q=0.8,pt-BR;q=0.7,pt;q=0.6\",\"HTTP_ACCEPT\":\"text\\/html,application\\/xhtml+xml,application\\/xml;q=0.9,image\\/avif,image\\/webp,image\\/apng,*\\/*;q=0.8,application\\/signed-exchange;v=b3;q=0.7\",\"HTTP_ACCEPT_ENCODING\":\"gzip, deflate, br, zstd\",\"is_mobile\":\"true\"}'),
-(185718, 992335, '2025-06-14 09:03:58', '::1', 'Google Chrome | Windows', 'logout', 'c7405780fe10b9502cf805ed079399263821488a2d5b32b3868ae8581722f759', '{\"platform\":\"Windows NT 10.0; Win64; x64\",\"screen\":\"<script>document.write(screen.width+\\\"x\\\"+screen.height+\\\"x\\\"+screen.colorDepth);<\\/script>\",\"timezone\":\"Asia\\/Jakarta\",\"languages\":\"id,en;q=0.9,en-US;q=0.8,pt-BR;q=0.7,pt;q=0.6\",\"HTTP_ACCEPT\":\"text\\/html,application\\/xhtml+xml,application\\/xml;q=0.9,image\\/avif,image\\/webp,image\\/apng,*\\/*;q=0.8,application\\/signed-exchange;v=b3;q=0.7\",\"HTTP_ACCEPT_ENCODING\":\"gzip, deflate, br, zstd\",\"is_mobile\":\"false\"}'),
-(189144, 992335, '2025-06-14 09:07:50', '::1', 'Google Chrome | Windows', 'logout', 'c7405780fe10b9502cf805ed079399263821488a2d5b32b3868ae8581722f759', '{\"platform\":\"Windows NT 10.0; Win64; x64\",\"screen\":\"<script>document.write(screen.width+\\\"x\\\"+screen.height+\\\"x\\\"+screen.colorDepth);<\\/script>\",\"timezone\":\"Asia\\/Jakarta\",\"languages\":\"id,en;q=0.9,en-US;q=0.8,pt-BR;q=0.7,pt;q=0.6\",\"HTTP_ACCEPT\":\"text\\/html,application\\/xhtml+xml,application\\/xml;q=0.9,image\\/avif,image\\/webp,image\\/apng,*\\/*;q=0.8,application\\/signed-exchange;v=b3;q=0.7\",\"HTTP_ACCEPT_ENCODING\":\"gzip, deflate, br, zstd\",\"is_mobile\":\"false\"}'),
-(218050, 376804, '2025-06-14 08:59:45', '::1', 'Google Chrome | Windows', 'logout', 'c7405780fe10b9502cf805ed079399263821488a2d5b32b3868ae8581722f759', '{\"platform\":\"Windows NT 10.0; Win64; x64\",\"screen\":\"<script>document.write(screen.width+\\\"x\\\"+screen.height+\\\"x\\\"+screen.colorDepth);<\\/script>\",\"timezone\":\"Asia\\/Jakarta\",\"languages\":\"id,en;q=0.9,en-US;q=0.8,pt-BR;q=0.7,pt;q=0.6\",\"HTTP_ACCEPT\":\"text\\/html,application\\/xhtml+xml,application\\/xml;q=0.9,image\\/avif,image\\/webp,image\\/apng,*\\/*;q=0.8,application\\/signed-exchange;v=b3;q=0.7\",\"HTTP_ACCEPT_ENCODING\":\"gzip, deflate, br, zstd\",\"is_mobile\":\"false\"}'),
-(292035, 992334, '2025-06-14 09:04:05', '::1', 'Google Chrome | Windows', 'login', 'a2c78f7cc9835ae1627b99b5083e8099bfb906b9c90cd362c0c1967b74225f31', '{\"platform\":\"Windows NT 10.0; Win64; x64\",\"screen\":\"<script>document.write(screen.width+\\\"x\\\"+screen.height+\\\"x\\\"+screen.colorDepth);<\\/script>\",\"timezone\":\"Asia\\/Jakarta\",\"languages\":\"id,en;q=0.9,en-US;q=0.8,pt-BR;q=0.7,pt;q=0.6\",\"HTTP_ACCEPT\":\"text\\/html,application\\/xhtml+xml,application\\/xml;q=0.9,image\\/avif,image\\/webp,image\\/apng,*\\/*;q=0.8,application\\/signed-exchange;v=b3;q=0.7\",\"HTTP_ACCEPT_ENCODING\":\"gzip, deflate, br, zstd\",\"is_mobile\":\"true\"}'),
-(466760, 992335, '2025-06-14 09:06:43', '::1', 'Google Chrome | Windows', 'logout', 'c7405780fe10b9502cf805ed079399263821488a2d5b32b3868ae8581722f759', '{\"platform\":\"Windows NT 10.0; Win64; x64\",\"screen\":\"<script>document.write(screen.width+\\\"x\\\"+screen.height+\\\"x\\\"+screen.colorDepth);<\\/script>\",\"timezone\":\"Asia\\/Jakarta\",\"languages\":\"id,en;q=0.9,en-US;q=0.8,pt-BR;q=0.7,pt;q=0.6\",\"HTTP_ACCEPT\":\"text\\/html,application\\/xhtml+xml,application\\/xml;q=0.9,image\\/avif,image\\/webp,image\\/apng,*\\/*;q=0.8,application\\/signed-exchange;v=b3;q=0.7\",\"HTTP_ACCEPT_ENCODING\":\"gzip, deflate, br, zstd\",\"is_mobile\":\"false\"}'),
-(482022, 992335, '2025-06-14 09:02:25', '::1', 'Google Chrome | Windows', 'logout', 'c7405780fe10b9502cf805ed079399263821488a2d5b32b3868ae8581722f759', '{\"platform\":\"Windows NT 10.0; Win64; x64\",\"screen\":\"<script>document.write(screen.width+\\\"x\\\"+screen.height+\\\"x\\\"+screen.colorDepth);<\\/script>\",\"timezone\":\"Asia\\/Jakarta\",\"languages\":\"id,en;q=0.9,en-US;q=0.8,pt-BR;q=0.7,pt;q=0.6\",\"HTTP_ACCEPT\":\"text\\/html,application\\/xhtml+xml,application\\/xml;q=0.9,image\\/avif,image\\/webp,image\\/apng,*\\/*;q=0.8,application\\/signed-exchange;v=b3;q=0.7\",\"HTTP_ACCEPT_ENCODING\":\"gzip, deflate, br, zstd\",\"is_mobile\":\"false\"}'),
-(499599, 376804, '2025-06-14 08:59:17', '::1', 'Google Chrome | Windows', 'login', 'a2c78f7cc9835ae1627b99b5083e8099bfb906b9c90cd362c0c1967b74225f31', '{\"platform\":\"Windows NT 10.0; Win64; x64\",\"screen\":\"<script>document.write(screen.width+\\\"x\\\"+screen.height+\\\"x\\\"+screen.colorDepth);<\\/script>\",\"timezone\":\"Asia\\/Jakarta\",\"languages\":\"id,en;q=0.9,en-US;q=0.8,pt-BR;q=0.7,pt;q=0.6\",\"HTTP_ACCEPT\":\"text\\/html,application\\/xhtml+xml,application\\/xml;q=0.9,image\\/avif,image\\/webp,image\\/apng,*\\/*;q=0.8,application\\/signed-exchange;v=b3;q=0.7\",\"HTTP_ACCEPT_ENCODING\":\"gzip, deflate, br, zstd\",\"is_mobile\":\"true\"}'),
-(506523, 992334, '2025-06-14 08:59:56', '::1', 'Google Chrome | Windows', 'logout', 'c7405780fe10b9502cf805ed079399263821488a2d5b32b3868ae8581722f759', '{\"platform\":\"Windows NT 10.0; Win64; x64\",\"screen\":\"<script>document.write(screen.width+\\\"x\\\"+screen.height+\\\"x\\\"+screen.colorDepth);<\\/script>\",\"timezone\":\"Asia\\/Jakarta\",\"languages\":\"id,en;q=0.9,en-US;q=0.8,pt-BR;q=0.7,pt;q=0.6\",\"HTTP_ACCEPT\":\"text\\/html,application\\/xhtml+xml,application\\/xml;q=0.9,image\\/avif,image\\/webp,image\\/apng,*\\/*;q=0.8,application\\/signed-exchange;v=b3;q=0.7\",\"HTTP_ACCEPT_ENCODING\":\"gzip, deflate, br, zstd\",\"is_mobile\":\"false\"}'),
-(529669, 376804, '2025-06-14 09:01:13', '::1', 'Google Chrome | Windows', 'login', 'a2c78f7cc9835ae1627b99b5083e8099bfb906b9c90cd362c0c1967b74225f31', '{\"platform\":\"Windows NT 10.0; Win64; x64\",\"screen\":\"<script>document.write(screen.width+\\\"x\\\"+screen.height+\\\"x\\\"+screen.colorDepth);<\\/script>\",\"timezone\":\"Asia\\/Jakarta\",\"languages\":\"id,en;q=0.9,en-US;q=0.8,pt-BR;q=0.7,pt;q=0.6\",\"HTTP_ACCEPT\":\"text\\/html,application\\/xhtml+xml,application\\/xml;q=0.9,image\\/avif,image\\/webp,image\\/apng,*\\/*;q=0.8,application\\/signed-exchange;v=b3;q=0.7\",\"HTTP_ACCEPT_ENCODING\":\"gzip, deflate, br, zstd\",\"is_mobile\":\"true\"}'),
-(578766, 992334, '2025-06-14 09:05:37', '::1', 'Google Chrome | Windows', 'logout', 'c7405780fe10b9502cf805ed079399263821488a2d5b32b3868ae8581722f759', '{\"platform\":\"Windows NT 10.0; Win64; x64\",\"screen\":\"<script>document.write(screen.width+\\\"x\\\"+screen.height+\\\"x\\\"+screen.colorDepth);<\\/script>\",\"timezone\":\"Asia\\/Jakarta\",\"languages\":\"id,en;q=0.9,en-US;q=0.8,pt-BR;q=0.7,pt;q=0.6\",\"HTTP_ACCEPT\":\"text\\/html,application\\/xhtml+xml,application\\/xml;q=0.9,image\\/avif,image\\/webp,image\\/apng,*\\/*;q=0.8,application\\/signed-exchange;v=b3;q=0.7\",\"HTTP_ACCEPT_ENCODING\":\"gzip, deflate, br, zstd\",\"is_mobile\":\"false\"}'),
-(589872, 376804, '2025-06-14 09:00:16', '::1', 'Google Chrome | Windows', 'logout', 'c7405780fe10b9502cf805ed079399263821488a2d5b32b3868ae8581722f759', '{\"platform\":\"Windows NT 10.0; Win64; x64\",\"screen\":\"<script>document.write(screen.width+\\\"x\\\"+screen.height+\\\"x\\\"+screen.colorDepth);<\\/script>\",\"timezone\":\"Asia\\/Jakarta\",\"languages\":\"id,en;q=0.9,en-US;q=0.8,pt-BR;q=0.7,pt;q=0.6\",\"HTTP_ACCEPT\":\"text\\/html,application\\/xhtml+xml,application\\/xml;q=0.9,image\\/avif,image\\/webp,image\\/apng,*\\/*;q=0.8,application\\/signed-exchange;v=b3;q=0.7\",\"HTTP_ACCEPT_ENCODING\":\"gzip, deflate, br, zstd\",\"is_mobile\":\"false\"}'),
-(590327, 376804, '2025-06-14 09:07:14', '::1', 'Google Chrome | Windows', 'logout', 'c7405780fe10b9502cf805ed079399263821488a2d5b32b3868ae8581722f759', '{\"platform\":\"Windows NT 10.0; Win64; x64\",\"screen\":\"<script>document.write(screen.width+\\\"x\\\"+screen.height+\\\"x\\\"+screen.colorDepth);<\\/script>\",\"timezone\":\"Asia\\/Jakarta\",\"languages\":\"id,en;q=0.9,en-US;q=0.8,pt-BR;q=0.7,pt;q=0.6\",\"HTTP_ACCEPT\":\"text\\/html,application\\/xhtml+xml,application\\/xml;q=0.9,image\\/avif,image\\/webp,image\\/apng,*\\/*;q=0.8,application\\/signed-exchange;v=b3;q=0.7\",\"HTTP_ACCEPT_ENCODING\":\"gzip, deflate, br, zstd\",\"is_mobile\":\"false\"}'),
-(590452, 992335, '2025-06-14 09:05:42', '::1', 'Google Chrome | Windows', 'login', 'a2c78f7cc9835ae1627b99b5083e8099bfb906b9c90cd362c0c1967b74225f31', '{\"platform\":\"Windows NT 10.0; Win64; x64\",\"screen\":\"<script>document.write(screen.width+\\\"x\\\"+screen.height+\\\"x\\\"+screen.colorDepth);<\\/script>\",\"timezone\":\"Asia\\/Jakarta\",\"languages\":\"id,en;q=0.9,en-US;q=0.8,pt-BR;q=0.7,pt;q=0.6\",\"HTTP_ACCEPT\":\"text\\/html,application\\/xhtml+xml,application\\/xml;q=0.9,image\\/avif,image\\/webp,image\\/apng,*\\/*;q=0.8,application\\/signed-exchange;v=b3;q=0.7\",\"HTTP_ACCEPT_ENCODING\":\"gzip, deflate, br, zstd\",\"is_mobile\":\"true\"}'),
-(614978, 376804, '2025-06-14 09:03:20', '::1', 'Google Chrome | Windows', 'logout', 'c7405780fe10b9502cf805ed079399263821488a2d5b32b3868ae8581722f759', '{\"platform\":\"Windows NT 10.0; Win64; x64\",\"screen\":\"<script>document.write(screen.width+\\\"x\\\"+screen.height+\\\"x\\\"+screen.colorDepth);<\\/script>\",\"timezone\":\"Asia\\/Jakarta\",\"languages\":\"id,en;q=0.9,en-US;q=0.8,pt-BR;q=0.7,pt;q=0.6\",\"HTTP_ACCEPT\":\"text\\/html,application\\/xhtml+xml,application\\/xml;q=0.9,image\\/avif,image\\/webp,image\\/apng,*\\/*;q=0.8,application\\/signed-exchange;v=b3;q=0.7\",\"HTTP_ACCEPT_ENCODING\":\"gzip, deflate, br, zstd\",\"is_mobile\":\"false\"}'),
-(655243, 376804, '2025-06-14 08:55:06', '::1', 'Google Chrome | Windows', 'logout', 'c7405780fe10b9502cf805ed079399263821488a2d5b32b3868ae8581722f759', '{\"platform\":\"Windows NT 10.0; Win64; x64\",\"screen\":\"<script>document.write(screen.width+\\\"x\\\"+screen.height+\\\"x\\\"+screen.colorDepth);<\\/script>\",\"timezone\":\"Asia\\/Jakarta\",\"languages\":\"id,en;q=0.9,en-US;q=0.8,pt-BR;q=0.7,pt;q=0.6\",\"HTTP_ACCEPT\":\"text\\/html,application\\/xhtml+xml,application\\/xml;q=0.9,image\\/avif,image\\/webp,image\\/apng,*\\/*;q=0.8,application\\/signed-exchange;v=b3;q=0.7\",\"HTTP_ACCEPT_ENCODING\":\"gzip, deflate, br, zstd\",\"is_mobile\":\"false\"}'),
-(663462, 992334, '2025-06-16 22:38:50', '::1', 'Google Chrome | Windows', 'logout', 'c7405780fe10b9502cf805ed079399263821488a2d5b32b3868ae8581722f759', '{\"platform\":\"Windows NT 10.0; Win64; x64\",\"screen\":\"<script>document.write(screen.width+\\\"x\\\"+screen.height+\\\"x\\\"+screen.colorDepth);<\\/script>\",\"timezone\":\"Asia\\/Jakarta\",\"languages\":\"id,en;q=0.9,en-US;q=0.8,pt-BR;q=0.7,pt;q=0.6\",\"HTTP_ACCEPT\":\"text\\/html,application\\/xhtml+xml,application\\/xml;q=0.9,image\\/avif,image\\/webp,image\\/apng,*\\/*;q=0.8,application\\/signed-exchange;v=b3;q=0.7\",\"HTTP_ACCEPT_ENCODING\":\"gzip, deflate, br, zstd\",\"is_mobile\":\"false\"}'),
-(665711, 992334, '2025-06-14 09:01:09', '::1', 'Google Chrome | Windows', 'logout', 'c7405780fe10b9502cf805ed079399263821488a2d5b32b3868ae8581722f759', '{\"platform\":\"Windows NT 10.0; Win64; x64\",\"screen\":\"<script>document.write(screen.width+\\\"x\\\"+screen.height+\\\"x\\\"+screen.colorDepth);<\\/script>\",\"timezone\":\"Asia\\/Jakarta\",\"languages\":\"id,en;q=0.9,en-US;q=0.8,pt-BR;q=0.7,pt;q=0.6\",\"HTTP_ACCEPT\":\"text\\/html,application\\/xhtml+xml,application\\/xml;q=0.9,image\\/avif,image\\/webp,image\\/apng,*\\/*;q=0.8,application\\/signed-exchange;v=b3;q=0.7\",\"HTTP_ACCEPT_ENCODING\":\"gzip, deflate, br, zstd\",\"is_mobile\":\"false\"}'),
-(715870, 992335, '2025-06-14 09:07:19', '::1', 'Google Chrome | Windows', 'login', 'a2c78f7cc9835ae1627b99b5083e8099bfb906b9c90cd362c0c1967b74225f31', '{\"platform\":\"Windows NT 10.0; Win64; x64\",\"screen\":\"<script>document.write(screen.width+\\\"x\\\"+screen.height+\\\"x\\\"+screen.colorDepth);<\\/script>\",\"timezone\":\"Asia\\/Jakarta\",\"languages\":\"id,en;q=0.9,en-US;q=0.8,pt-BR;q=0.7,pt;q=0.6\",\"HTTP_ACCEPT\":\"text\\/html,application\\/xhtml+xml,application\\/xml;q=0.9,image\\/avif,image\\/webp,image\\/apng,*\\/*;q=0.8,application\\/signed-exchange;v=b3;q=0.7\",\"HTTP_ACCEPT_ENCODING\":\"gzip, deflate, br, zstd\",\"is_mobile\":\"true\"}'),
-(717992, 992334, '2025-06-14 08:59:48', '::1', 'Google Chrome | Windows', 'first_registration', 'a2c78f7cc9835ae1627b99b5083e8099bfb906b9c90cd362c0c1967b74225f31', '{\"platform\":\"Windows NT 10.0; Win64; x64\",\"screen\":\"<script>document.write(screen.width+\\\"x\\\"+screen.height+\\\"x\\\"+screen.colorDepth);<\\/script>\",\"timezone\":\"Asia\\/Jakarta\",\"languages\":\"id,en;q=0.9,en-US;q=0.8,pt-BR;q=0.7,pt;q=0.6\",\"HTTP_ACCEPT\":\"text\\/html,application\\/xhtml+xml,application\\/xml;q=0.9,image\\/avif,image\\/webp,image\\/apng,*\\/*;q=0.8,application\\/signed-exchange;v=b3;q=0.7\",\"HTTP_ACCEPT_ENCODING\":\"gzip, deflate, br, zstd\",\"is_mobile\":\"true\"}'),
-(827786, 992335, '2025-06-14 09:01:55', '::1', 'Google Chrome | Windows', 'first_registration', 'a2c78f7cc9835ae1627b99b5083e8099bfb906b9c90cd362c0c1967b74225f31', '{\"platform\":\"Windows NT 10.0; Win64; x64\",\"screen\":\"<script>document.write(screen.width+\\\"x\\\"+screen.height+\\\"x\\\"+screen.colorDepth);<\\/script>\",\"timezone\":\"Asia\\/Jakarta\",\"languages\":\"id,en;q=0.9,en-US;q=0.8,pt-BR;q=0.7,pt;q=0.6\",\"HTTP_ACCEPT\":\"text\\/html,application\\/xhtml+xml,application\\/xml;q=0.9,image\\/avif,image\\/webp,image\\/apng,*\\/*;q=0.8,application\\/signed-exchange;v=b3;q=0.7\",\"HTTP_ACCEPT_ENCODING\":\"gzip, deflate, br, zstd\",\"is_mobile\":\"true\"}'),
-(842994, 376804, '2025-06-14 09:00:00', '::1', 'Google Chrome | Windows', 'login', 'a2c78f7cc9835ae1627b99b5083e8099bfb906b9c90cd362c0c1967b74225f31', '{\"platform\":\"Windows NT 10.0; Win64; x64\",\"screen\":\"<script>document.write(screen.width+\\\"x\\\"+screen.height+\\\"x\\\"+screen.colorDepth);<\\/script>\",\"timezone\":\"Asia\\/Jakarta\",\"languages\":\"id,en;q=0.9,en-US;q=0.8,pt-BR;q=0.7,pt;q=0.6\",\"HTTP_ACCEPT\":\"text\\/html,application\\/xhtml+xml,application\\/xml;q=0.9,image\\/avif,image\\/webp,image\\/apng,*\\/*;q=0.8,application\\/signed-exchange;v=b3;q=0.7\",\"HTTP_ACCEPT_ENCODING\":\"gzip, deflate, br, zstd\",\"is_mobile\":\"true\"}'),
-(886664, 992334, '2025-06-14 09:07:57', '::1', 'Google Chrome | Windows', 'login', 'a2c78f7cc9835ae1627b99b5083e8099bfb906b9c90cd362c0c1967b74225f31', '{\"platform\":\"Windows NT 10.0; Win64; x64\",\"screen\":\"<script>document.write(screen.width+\\\"x\\\"+screen.height+\\\"x\\\"+screen.colorDepth);<\\/script>\",\"timezone\":\"Asia\\/Jakarta\",\"languages\":\"id,en;q=0.9,en-US;q=0.8,pt-BR;q=0.7,pt;q=0.6\",\"HTTP_ACCEPT\":\"text\\/html,application\\/xhtml+xml,application\\/xml;q=0.9,image\\/avif,image\\/webp,image\\/apng,*\\/*;q=0.8,application\\/signed-exchange;v=b3;q=0.7\",\"HTTP_ACCEPT_ENCODING\":\"gzip, deflate, br, zstd\",\"is_mobile\":\"true\"}'),
-(934990, 992335, '2025-06-14 09:03:24', '::1', 'Google Chrome | Windows', 'login', 'a2c78f7cc9835ae1627b99b5083e8099bfb906b9c90cd362c0c1967b74225f31', '{\"platform\":\"Windows NT 10.0; Win64; x64\",\"screen\":\"<script>document.write(screen.width+\\\"x\\\"+screen.height+\\\"x\\\"+screen.colorDepth);<\\/script>\",\"timezone\":\"Asia\\/Jakarta\",\"languages\":\"id,en;q=0.9,en-US;q=0.8,pt-BR;q=0.7,pt;q=0.6\",\"HTTP_ACCEPT\":\"text\\/html,application\\/xhtml+xml,application\\/xml;q=0.9,image\\/avif,image\\/webp,image\\/apng,*\\/*;q=0.8,application\\/signed-exchange;v=b3;q=0.7\",\"HTTP_ACCEPT_ENCODING\":\"gzip, deflate, br, zstd\",\"is_mobile\":\"true\"}'),
-(936336, 376804, '2025-06-14 08:54:28', '::1', 'Google Chrome | Windows', 'first_registration', 'a2c78f7cc9835ae1627b99b5083e8099bfb906b9c90cd362c0c1967b74225f31', '{\"platform\":\"Windows NT 10.0; Win64; x64\",\"screen\":\"<script>document.write(screen.width+\\\"x\\\"+screen.height+\\\"x\\\"+screen.colorDepth);<\\/script>\",\"timezone\":\"Asia\\/Jakarta\",\"languages\":\"id,en;q=0.9,en-US;q=0.8,pt-BR;q=0.7,pt;q=0.6\",\"HTTP_ACCEPT\":\"text\\/html,application\\/xhtml+xml,application\\/xml;q=0.9,image\\/avif,image\\/webp,image\\/apng,*\\/*;q=0.8,application\\/signed-exchange;v=b3;q=0.7\",\"HTTP_ACCEPT_ENCODING\":\"gzip, deflate, br, zstd\",\"is_mobile\":\"true\"}'),
-(961993, 376804, '2025-06-14 09:01:53', '::1', 'Google Chrome | Windows', 'logout', 'c7405780fe10b9502cf805ed079399263821488a2d5b32b3868ae8581722f759', '{\"platform\":\"Windows NT 10.0; Win64; x64\",\"screen\":\"<script>document.write(screen.width+\\\"x\\\"+screen.height+\\\"x\\\"+screen.colorDepth);<\\/script>\",\"timezone\":\"Asia\\/Jakarta\",\"languages\":\"id,en;q=0.9,en-US;q=0.8,pt-BR;q=0.7,pt;q=0.6\",\"HTTP_ACCEPT\":\"text\\/html,application\\/xhtml+xml,application\\/xml;q=0.9,image\\/avif,image\\/webp,image\\/apng,*\\/*;q=0.8,application\\/signed-exchange;v=b3;q=0.7\",\"HTTP_ACCEPT_ENCODING\":\"gzip, deflate, br, zstd\",\"is_mobile\":\"false\"}'),
-(972791, 992334, '2025-06-14 09:00:20', '::1', 'Google Chrome | Windows', 'login', 'a2c78f7cc9835ae1627b99b5083e8099bfb906b9c90cd362c0c1967b74225f31', '{\"platform\":\"Windows NT 10.0; Win64; x64\",\"screen\":\"<script>document.write(screen.width+\\\"x\\\"+screen.height+\\\"x\\\"+screen.colorDepth);<\\/script>\",\"timezone\":\"Asia\\/Jakarta\",\"languages\":\"id,en;q=0.9,en-US;q=0.8,pt-BR;q=0.7,pt;q=0.6\",\"HTTP_ACCEPT\":\"text\\/html,application\\/xhtml+xml,application\\/xml;q=0.9,image\\/avif,image\\/webp,image\\/apng,*\\/*;q=0.8,application\\/signed-exchange;v=b3;q=0.7\",\"HTTP_ACCEPT_ENCODING\":\"gzip, deflate, br, zstd\",\"is_mobile\":\"true\"}');
-
 -- --------------------------------------------------------
 
 --
@@ -528,14 +520,7 @@ CREATE TABLE `otp_code` (
 --
 
 INSERT INTO `otp_code` (`id`, `otp_code`) VALUES
-(992336, '854070'),
-(992337, '000000'),
-(992338, '000000'),
-(992339, '850404'),
-(992340, '000000'),
-(992341, '886003'),
-(992342, '000000'),
-(992343, '000000');
+(992346, '000000');
 
 -- --------------------------------------------------------
 
@@ -552,14 +537,6 @@ CREATE TABLE `pegawai` (
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
-
---
--- Dumping data untuk tabel `pegawai`
---
-
-INSERT INTO `pegawai` (`id`, `user_id`, `divisi_id`, `status_aktif`, `hari_libur`, `created_at`, `updated_at`) VALUES
-(1, 992334, 1, 'aktif', 'minggu', '2025-06-14 01:59:40', '2025-06-14 01:59:40'),
-(2, 992335, 3, 'aktif', 'minggu', '2025-06-14 02:01:49', '2025-06-14 02:01:49');
 
 --
 -- Trigger `pegawai`
@@ -621,7 +598,7 @@ CREATE TABLE `qr_code` (
 --
 
 INSERT INTO `qr_code` (`id`, `pegawai_id`, `kode_unik`, `created_at`, `is_used`) VALUES
-(4274, 1, '5PW77a', '2025-06-14 09:07:59', 0);
+(4275, 3, '5EkqpU', '2025-07-07 10:28:48', 0);
 
 -- --------------------------------------------------------
 
@@ -664,15 +641,6 @@ CREATE TABLE `users` (
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
-
---
--- Dumping data untuk tabel `users`
---
-
-INSERT INTO `users` (`id`, `username`, `password`, `nama_lengkap`, `jenis_kelamin`, `email`, `role`, `no_telp`, `id_otp`, `created_at`, `updated_at`) VALUES
-(376804, 'qila', '$2y$10$lSqT1gjQ9ZTHjxvfzqIQDuImSOH0NdgX21ax5MZ.BVwECNvLrVR2W', 'qil a', 'laki', 'aqiilahcahya.07@gmail.com', 'owner', '083111535157', 992336, '2025-05-11 17:40:01', '2025-05-11 17:40:01'),
-(992334, 'fika', '$2y$10$hW5rwG9Bs8cUqPaPOooWPuQKWNT7s18GwTXgrE8/v0WvUtPwFxLtS', 'fika', 'perempuan', 'aqiilah.210170162@mhs.unimal.ac.id', 'karyawan', '0822564738767', 992342, '2025-06-14 01:59:40', '2025-06-14 01:59:40'),
-(992335, 'kiki', '$2y$10$lVrxhNBdfRFfZPoHSRNz8uqzLGUUzrMGTtBTkh9l5r2bfdiLv6Zv.', 'kiki', 'perempuan', 'cahyaaqiilah@gmail.com', 'karyawan', '082256473876', 992343, '2025-06-14 02:01:49', '2025-06-14 02:01:49');
 
 -- --------------------------------------------------------
 
@@ -828,13 +796,13 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT untuk tabel `absensi`
 --
 ALTER TABLE `absensi`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT untuk tabel `cuti`
 --
 ALTER TABLE `cuti`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=654325;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT untuk tabel `divisi`
@@ -846,25 +814,25 @@ ALTER TABLE `divisi`
 -- AUTO_INCREMENT untuk tabel `izin`
 --
 ALTER TABLE `izin`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12314140;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT untuk tabel `jadwal_shift`
 --
 ALTER TABLE `jadwal_shift`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=44;
 
 --
 -- AUTO_INCREMENT untuk tabel `log_akses`
 --
 ALTER TABLE `log_akses`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=986452;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=954439;
 
 --
 -- AUTO_INCREMENT untuk tabel `otp_code`
 --
 ALTER TABLE `otp_code`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=992344;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=992347;
 
 --
 -- AUTO_INCREMENT untuk tabel `pegawai`
@@ -876,7 +844,7 @@ ALTER TABLE `pegawai`
 -- AUTO_INCREMENT untuk tabel `qr_code`
 --
 ALTER TABLE `qr_code`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4275;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4276;
 
 --
 -- AUTO_INCREMENT untuk tabel `shift`
@@ -888,7 +856,7 @@ ALTER TABLE `shift`
 -- AUTO_INCREMENT untuk tabel `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=992336;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=992338;
 
 --
 -- Ketidakleluasaan untuk tabel pelimpahan (Dumped Tables)
