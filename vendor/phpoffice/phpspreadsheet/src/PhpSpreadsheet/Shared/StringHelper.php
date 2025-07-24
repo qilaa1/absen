@@ -19,17 +19,17 @@ class StringHelper
     /**
      * Decimal separator.
      */
-    private static ?string $decimalSeparator = null;
+    private static ?string $decimalSeparator;
 
     /**
      * Thousands separator.
      */
-    private static ?string $thousandsSeparator = null;
+    private static ?string $thousandsSeparator;
 
     /**
      * Currency code.
      */
-    private static ?string $currencyCode = null;
+    private static ?string $currencyCode;
 
     /**
      * Is iconv extension avalable?
@@ -511,23 +511,6 @@ class StringHelper
         return implode('', $characters);
     }
 
-    private static function useAlt(string $altValue, string $default, bool $trimAlt): string
-    {
-        return ($trimAlt ? trim($altValue) : $altValue) ?: $default;
-    }
-
-    private static function getLocaleValue(string $key, string $altKey, string $default, bool $trimAlt = false): string
-    {
-        $localeconv = localeconv();
-        $rslt = $localeconv[$key];
-        // win-1252 implements Euro as 0x80 plus other symbols
-        if (preg_match('//u', $rslt) !== 1) {
-            $rslt = '';
-        }
-
-        return $rslt ?: self::useAlt($localeconv[$altKey], $default, $trimAlt);
-    }
-
     /**
      * Get the decimal separator. If it has not yet been set explicitly, try to obtain number
      * formatting information from locale.
@@ -535,7 +518,14 @@ class StringHelper
     public static function getDecimalSeparator(): string
     {
         if (!isset(self::$decimalSeparator)) {
-            self::$decimalSeparator = self::getLocaleValue('decimal_point', 'mon_decimal_point', '.');
+            $localeconv = localeconv();
+            self::$decimalSeparator = ($localeconv['decimal_point'] != '')
+                ? $localeconv['decimal_point'] : $localeconv['mon_decimal_point'];
+
+            if (self::$decimalSeparator == '') {
+                // Default to .
+                self::$decimalSeparator = '.';
+            }
         }
 
         return self::$decimalSeparator;
@@ -559,7 +549,14 @@ class StringHelper
     public static function getThousandsSeparator(): string
     {
         if (!isset(self::$thousandsSeparator)) {
-            self::$thousandsSeparator = self::getLocaleValue('thousands_sep', 'mon_thousands_sep', ',');
+            $localeconv = localeconv();
+            self::$thousandsSeparator = ($localeconv['thousands_sep'] != '')
+                ? $localeconv['thousands_sep'] : $localeconv['mon_thousands_sep'];
+
+            if (self::$thousandsSeparator == '') {
+                // Default to .
+                self::$thousandsSeparator = ',';
+            }
         }
 
         return self::$thousandsSeparator;
@@ -580,10 +577,22 @@ class StringHelper
      *    Get the currency code. If it has not yet been set explicitly, try to obtain the
      *        symbol information from locale.
      */
-    public static function getCurrencyCode(bool $trimAlt = false): string
+    public static function getCurrencyCode(): string
     {
-        if (!isset(self::$currencyCode)) {
-            self::$currencyCode = self::getLocaleValue('currency_symbol', 'int_curr_symbol', '$', $trimAlt);
+        if (!empty(self::$currencyCode)) {
+            return self::$currencyCode;
+        }
+        self::$currencyCode = '$';
+        $localeconv = localeconv();
+        if (!empty($localeconv['currency_symbol'])) {
+            self::$currencyCode = $localeconv['currency_symbol'];
+
+            return self::$currencyCode;
+        }
+        if (!empty($localeconv['int_curr_symbol'])) {
+            self::$currencyCode = $localeconv['int_curr_symbol'];
+
+            return self::$currencyCode;
         }
 
         return self::$currencyCode;
@@ -637,10 +646,5 @@ class StringHelper
         $v = (float) $textValue;
 
         return (is_numeric(substr($textValue, 0, strlen((string) $v)))) ? $v : $textValue;
-    }
-
-    public static function strlenAllowNull(?string $string): int
-    {
-        return strlen("$string");
     }
 }

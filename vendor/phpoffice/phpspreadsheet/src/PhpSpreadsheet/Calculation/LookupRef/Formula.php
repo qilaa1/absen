@@ -20,14 +20,13 @@ class Formula
             return ExcelError::REF();
         }
 
-        $worksheet = null;
-        if (1 === preg_match('/^' . Calculation::CALCULATION_REGEXP_CELLREF . '$/i', $cellReference, $matches)) {
-            $cellReference = $matches[6] . $matches[7];
-            $worksheetName = trim($matches[3], "'");
-            $worksheet = (!empty($worksheetName))
-                ? $cell->getWorksheet()->getParentOrThrow()->getSheetByName($worksheetName)
-                : $cell->getWorksheet();
-        }
+        preg_match('/^' . Calculation::CALCULATION_REGEXP_CELLREF . '$/i', $cellReference, $matches);
+
+        $cellReference = $matches[6] . $matches[7];
+        $worksheetName = trim($matches[3], "'");
+        $worksheet = (!empty($worksheetName))
+            ? $cell->getWorksheet()->getParentOrThrow()->getSheetByName($worksheetName)
+            : $cell->getWorksheet();
 
         if (
             $worksheet === null

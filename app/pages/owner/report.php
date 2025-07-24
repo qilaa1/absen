@@ -377,7 +377,7 @@ if (isset($_GET['action'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
     <meta name="description" content="" />
     <meta name="author" content="" />
-    <title>Si Hadir - Laporan</title>
+    <title>Absensi Karyawan - Laporan</title>
     <!-- Favicon-->
     <link rel="icon" type="image/x-icon" href="../../../assets/icon/favicon.ico" />
     <!-- Core theme CSS (includes Bootstrap)-->
@@ -399,7 +399,7 @@ if (isset($_GET['action'])) {
         /* Mengatur font Poppins hanya untuk <strong> di dalam sidebar-heading */
         #sidebar-wrapper .sidebar-heading strong {
             font-family: 'Poppins', sans-serif;
-            /* Menggunakan font Poppins hanya untuk Si Hadir */
+            /* Menggunakan font Poppins hanya untuk Absensi Karyawan */
             font-weight: 900;
             /* Menebalkan tulisan */
             font-size: 28px;
@@ -491,7 +491,7 @@ if (isset($_GET['action'])) {
         <div class="d-flex" id="wrapper">
             <!-- Sidebar-->
             <div class="border-end-0 bg-white" id="sidebar-wrapper">
-                <div class="sidebar-heading border-bottom-0"><strong>Si Hadir</strong></div>
+                <div class="sidebar-heading border-bottom-0"><strong>Absensi Karyawan</strong></div>
                 <div class="list-group list-group-flush">
                     <a class="list-group-item list-group-item-action list-group-item-light p-3 border-bottom-0"
                         href="dashboard.php">
@@ -528,6 +528,12 @@ if (isset($_GET['action'])) {
                         </svg>
                         Manajemen Staff
                     </a>
+                    <a class="list-group-item list-group-item-action list-group-item-light p-3 border-bottom-0" href="/absensi/app/scan/index.php">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" class="sidebar-icon" fill="#6c757d">
+                        <path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h280v80H200v560h280v80H200Zm440-160-55-58 102-102H360v-80h327L585-622l55-58 200 200-200 200Z" />
+                    </svg>
+                    Qr
+                </a>
                     <a class="list-group-item list-group-item-action list-group-item-light p-3 border-bottom-0"
                         href="permit.php">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" class="sidebar-icon"

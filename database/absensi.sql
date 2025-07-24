@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 11 Jul 2025 pada 13.59
+-- Waktu pembuatan: 24 Jul 2025 pada 23.59
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.1.25
 
@@ -338,20 +338,6 @@ CREATE TABLE `divisi` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 --
--- Dumping data untuk tabel `divisi`
---
-
-INSERT INTO `divisi` (`id`, `nama_divisi`, `created_at`) VALUES
-(1, 'IT', '2024-10-23 02:54:41'),
-(2, 'HR', '2024-10-23 02:54:41'),
-(3, 'Finance', '2024-10-23 02:54:41'),
-(4, 'Marketing', '2024-10-23 02:54:41'),
-(5, 'IT', '2024-10-23 02:54:41'),
-(6, 'HR', '2024-10-23 02:54:41'),
-(7, 'Finance', '2024-10-23 02:54:41'),
-(8, 'Marketing', '2024-10-23 02:54:41');
-
---
 -- Trigger `divisi`
 --
 DELIMITER $$
@@ -437,44 +423,6 @@ CREATE TABLE `jadwal_shift` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 --
--- Dumping data untuk tabel `jadwal_shift`
---
-
-INSERT INTO `jadwal_shift` (`id`, `pegawai_id`, `shift_id`, `tanggal`, `status`) VALUES
-(2, 2, 75591, '2025-06-14', 'aktif'),
-(4, 2, 75591, '2025-06-27', 'aktif'),
-(6, 2, 75591, '2025-06-28', 'aktif'),
-(8, 2, 75591, '2025-06-30', 'aktif'),
-(10, 2, 75591, '2025-07-01', 'aktif'),
-(12, 2, 75591, '2025-07-02', 'aktif'),
-(14, 2, 75591, '2025-07-03', 'aktif'),
-(16, 2, 75591, '2025-07-04', 'aktif'),
-(18, 2, 75591, '2025-07-05', 'aktif'),
-(20, 2, 75591, '2025-07-06', 'aktif'),
-(22, 2, 75591, '2025-07-07', 'aktif'),
-(23, 3, 75590, '2025-07-07', 'aktif'),
-(24, 4, 75589, '2025-07-07', 'aktif'),
-(25, 2, 75591, '2025-07-08', 'aktif'),
-(26, 3, 75590, '2025-07-08', 'aktif'),
-(27, 4, 75589, '2025-07-08', 'aktif'),
-(28, 2, 75591, '2025-06-14', 'aktif'),
-(29, 2, 75591, '2025-06-27', 'aktif'),
-(30, 2, 75591, '2025-06-28', 'aktif'),
-(31, 2, 75591, '2025-06-30', 'aktif'),
-(32, 2, 75591, '2025-07-01', 'aktif'),
-(33, 2, 75591, '2025-07-02', 'aktif'),
-(34, 2, 75591, '2025-07-03', 'aktif'),
-(35, 2, 75591, '2025-07-04', 'aktif'),
-(36, 2, 75591, '2025-07-05', 'aktif'),
-(37, 2, 75591, '2025-07-06', 'aktif'),
-(38, 2, 75591, '2025-07-07', 'aktif'),
-(39, 3, 75590, '2025-07-07', 'aktif'),
-(40, 4, 75589, '2025-07-07', 'aktif'),
-(41, 2, 75591, '2025-07-08', 'aktif'),
-(42, 3, 75590, '2025-07-08', 'aktif'),
-(43, 4, 75589, '2025-07-08', 'aktif');
-
---
 -- Trigger `jadwal_shift`
 --
 DELIMITER $$
@@ -514,13 +462,6 @@ CREATE TABLE `otp_code` (
   `id` int(11) NOT NULL,
   `otp_code` char(6) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
-
---
--- Dumping data untuk tabel `otp_code`
---
-
-INSERT INTO `otp_code` (`id`, `otp_code`) VALUES
-(992346, '000000');
 
 -- --------------------------------------------------------
 
@@ -587,18 +528,11 @@ CREATE TABLE `perizinan_view` (
 
 CREATE TABLE `qr_code` (
   `id` int(11) NOT NULL,
-  `pegawai_id` int(11) NOT NULL,
+  `pegawai_id` int(11) DEFAULT NULL,
   `kode_unik` varchar(20) NOT NULL,
   `created_at` datetime NOT NULL,
   `is_used` tinyint(1) DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data untuk tabel `qr_code`
---
-
-INSERT INTO `qr_code` (`id`, `pegawai_id`, `kode_unik`, `created_at`, `is_used`) VALUES
-(4275, 3, '5EkqpU', '2025-07-07 10:28:48', 0);
 
 -- --------------------------------------------------------
 
@@ -612,15 +546,6 @@ CREATE TABLE `shift` (
   `jam_masuk` time NOT NULL,
   `jam_keluar` time NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
-
---
--- Dumping data untuk tabel `shift`
---
-
-INSERT INTO `shift` (`id`, `nama_shift`, `jam_masuk`, `jam_keluar`) VALUES
-(75589, 'Siang', '08:00:00', '12:00:00'),
-(75590, 'Malam', '20:00:00', '21:00:00'),
-(75591, 'Pagi', '08:35:00', '09:02:00');
 
 -- --------------------------------------------------------
 
@@ -808,7 +733,7 @@ ALTER TABLE `cuti`
 -- AUTO_INCREMENT untuk tabel `divisi`
 --
 ALTER TABLE `divisi`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=234237;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT untuk tabel `izin`
@@ -820,43 +745,43 @@ ALTER TABLE `izin`
 -- AUTO_INCREMENT untuk tabel `jadwal_shift`
 --
 ALTER TABLE `jadwal_shift`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=44;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT untuk tabel `log_akses`
 --
 ALTER TABLE `log_akses`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=954439;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT untuk tabel `otp_code`
 --
 ALTER TABLE `otp_code`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=992347;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT untuk tabel `pegawai`
 --
 ALTER TABLE `pegawai`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT untuk tabel `qr_code`
 --
 ALTER TABLE `qr_code`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4276;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT untuk tabel `shift`
 --
 ALTER TABLE `shift`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=75592;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT untuk tabel `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=992338;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- Ketidakleluasaan untuk tabel pelimpahan (Dumped Tables)
@@ -902,12 +827,6 @@ ALTER TABLE `pegawai`
   ADD CONSTRAINT `pegawai_ibfk_2` FOREIGN KEY (`divisi_id`) REFERENCES `divisi` (`id`);
 
 --
--- Ketidakleluasaan untuk tabel `qr_code`
---
-ALTER TABLE `qr_code`
-  ADD CONSTRAINT `qr_code_ibfk_1` FOREIGN KEY (`pegawai_id`) REFERENCES `pegawai` (`id`);
-
---
 -- Ketidakleluasaan untuk tabel `users`
 --
 ALTER TABLE `users`
@@ -917,12 +836,12 @@ DELIMITER $$
 --
 -- Event
 --
-CREATE DEFINER=`root`@`localhost` EVENT `auto_clear_database` ON SCHEDULE EVERY 1 YEAR STARTS '2024-11-07 16:54:05' ON COMPLETION NOT PRESERVE ENABLE DO BEGIN
-    CALL reset_database_table();
-END$$
-
 CREATE DEFINER=`root`@`localhost` EVENT `auto_insert_absensi_event` ON SCHEDULE EVERY 3 SECOND STARTS '2024-11-07 16:54:05' ON COMPLETION NOT PRESERVE ENABLE DO BEGIN
     CALL update_attendance();
+END$$
+
+CREATE DEFINER=`root`@`localhost` EVENT `auto_clear_database` ON SCHEDULE EVERY 1 YEAR STARTS '2024-11-07 16:54:05' ON COMPLETION NOT PRESERVE ENABLE DO BEGIN
+    CALL reset_database_table();
 END$$
 
 DELIMITER ;

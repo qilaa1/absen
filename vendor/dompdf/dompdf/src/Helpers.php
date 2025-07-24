@@ -43,20 +43,23 @@ class Helpers
     }
 
     /**
-     * Builds a full url given a protocol, hostname, base path and URL.
-     *
-     * When the URL provided is a local file reference from the root of the filesystem
-     * (i.e., beginning with a "/") and the file does not resolve to a valid path,
-     * the path is validated against the chroot paths (if provided).
+     * builds a full url given a protocol, hostname, base path and url
      *
      * @param string $protocol
      * @param string $host
      * @param string $base_path
      * @param string $url
-     * @param array  $chrootDirs array of strings representing the chroot paths
      * @return string
+     *
+     * Initially the trailing slash of $base_path was optional, and conditionally appended.
+     * However on dynamically created sites, where the page is given as url parameter,
+     * the base path might not end with an url.
+     * Therefore do not append a slash, and **require** the $base_url to ending in a slash
+     * when needed.
+     * Vice versa, on using the local file system path of a file, make sure that the slash
+     * is appended (o.k. also for Windows)
      */
-    public static function build_url($protocol, $host, $base_path, $url, $chrootDirs = [])
+    public static function build_url($protocol, $host, $base_path, $url)
     {
         $protocol = mb_strtolower($protocol);
         if (empty($protocol)) {
@@ -110,26 +113,13 @@ class Helpers
             $ret = preg_replace('/\?(.*)$/', "", $ret);
 
             $filepath = realpath($ret);
-            if ($filepath !== false) {
-                $ret = "$protocol$filepath$res";
-
-                return $ret;
+            if ($filepath === false) {
+                return null;
             }
 
-            if ($url[0] == '/' && !empty($chrootDirs)) {
-                foreach ($chrootDirs as $dir) {
-                    $ret = realpath($dir) . $url;
-                    $ret = preg_replace('/\?(.*)$/', "", $ret);
+            $ret = "$protocol$filepath$res";
 
-                    if ($filepath = realpath($ret)) {
-                        $ret = "$protocol$filepath$res";
-
-                        return $ret;
-                    }
-                }
-            }
-
-            return null;
+            return $ret;
         }
 
         $ret = $protocol;
@@ -287,13 +277,8 @@ class Helpers
      */
     public static function parse_data_uri($data_uri)
     {
-        $expression = '/^data:(?P<mime>[a-z0-9\/+-.]+)(;charset=(?P<charset>[a-z0-9-])+)?(?P<base64>;base64)?\,(?P<data>.*)?/is';
-        if (!preg_match($expression, $data_uri, $match)) {
-            $parts = explode(",", $data_uri);
-            $parts[0] = preg_replace('/\\s/', '', $parts[0]);
-            if (preg_match('/\\s/', $data_uri) && !preg_match($expression, implode(",", $parts), $match)) {
-                return false;
-            }
+        if (!preg_match('/^data:(?P<mime>[a-z0-9\/+-.]+)(;charset=(?P<charset>[a-z0-9-])+)?(?P<base64>;base64)?\,(?P<data>.*)?/is', $data_uri, $match)) {
+            return false;
         }
 
         $match['data'] = rawurldecode($match['data']);

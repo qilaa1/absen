@@ -2,7 +2,6 @@
 
 namespace PhpOffice\PhpSpreadsheet\Reader;
 
-use PhpOffice\PhpSpreadsheet\Cell\IValueBinder;
 use PhpOffice\PhpSpreadsheet\Exception as PhpSpreadsheetException;
 use PhpOffice\PhpSpreadsheet\Reader\Exception as ReaderException;
 use PhpOffice\PhpSpreadsheet\Reader\Security\XmlScanner;
@@ -20,7 +19,7 @@ abstract class BaseReader implements IReader
 
     /**
      * Read empty cells?
-     * Identifies whether the Reader should read data values for all cells, or should ignore cells containing
+     * Identifies whether the Reader should read data values for cells all cells, or should ignore cells containing
      *         null value or empty string.
      */
     protected bool $readEmptyCells = true;
@@ -56,8 +55,6 @@ abstract class BaseReader implements IReader
     protected $fileHandle;
 
     protected ?XmlScanner $securityScanner = null;
-
-    protected ?IValueBinder $valueBinder = null;
 
     public function __construct()
     {
@@ -169,7 +166,7 @@ abstract class BaseReader implements IReader
         if (((bool) ($flags & self::READ_DATA_ONLY)) === true) {
             $this->setReadDataOnly(true);
         }
-        if (((bool) ($flags & self::IGNORE_EMPTY_CELLS)) === true) {
+        if (((bool) ($flags & self::SKIP_EMPTY_CELLS) || (bool) ($flags & self::IGNORE_EMPTY_CELLS)) === true) {
             $this->setReadEmptyCells(false);
         }
         if (((bool) ($flags & self::IGNORE_ROWS_WITH_NO_CELLS)) === true) {
@@ -244,17 +241,5 @@ abstract class BaseReader implements IReader
         }
 
         return $returnArray;
-    }
-
-    public function getValueBinder(): ?IValueBinder
-    {
-        return $this->valueBinder;
-    }
-
-    public function setValueBinder(?IValueBinder $valueBinder): self
-    {
-        $this->valueBinder = $valueBinder;
-
-        return $this;
     }
 }

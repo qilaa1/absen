@@ -168,7 +168,7 @@ unset($pdo);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Si Hadir - Registrasi</title>
+    <title>Absensi Karyawan - Registrasi</title>
     <link rel="icon" type="image/x-icon" href="assets/icon/favicon.ico" />
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
@@ -344,7 +344,7 @@ unset($pdo);
 
 <body>
     <div class="register-container">
-        <h1 class="register-title">Si Hadir</h1>
+        <h1 class="register-title">Absensi Karyawan</h1>
         <p class="register-subtitle">Buat akun owner untuk mulai menggunakan aplikasi</p>
 
         <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">

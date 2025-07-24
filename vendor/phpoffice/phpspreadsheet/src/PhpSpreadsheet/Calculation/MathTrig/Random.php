@@ -86,9 +86,11 @@ class Random
 
         return array_chunk(
             array_map(
-                fn (): int|float => $wholeNumber
+                function () use ($min, $max, $wholeNumber): int|float {
+                    return $wholeNumber
                         ? mt_rand((int) $min, (int) $max)
-                        : (mt_rand() / mt_getrandmax()) * ($max - $min) + $min,
+                        : (mt_rand() / mt_getrandmax()) * ($max - $min) + $min;
+                },
                 array_fill(0, $rows * $columns, $min)
             ),
             max($columns, 1)

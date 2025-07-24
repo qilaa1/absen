@@ -17,6 +17,7 @@ use PhpOffice\PhpSpreadsheet\Reader\Ods\PageSettings;
 use PhpOffice\PhpSpreadsheet\Reader\Ods\Properties as DocumentProperties;
 use PhpOffice\PhpSpreadsheet\Reader\Security\XmlScanner;
 use PhpOffice\PhpSpreadsheet\RichText\RichText;
+use PhpOffice\PhpSpreadsheet\Settings;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
 use PhpOffice\PhpSpreadsheet\Shared\File;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -57,12 +58,9 @@ class Ods extends BaseReader
                     $mimeType = $zip->getFromName($stat['name']);
                 } elseif ($zip->statName('META-INF/manifest.xml')) {
                     $xml = simplexml_load_string(
-                        $this->getSecurityScannerOrThrow()
-                            ->scan(
-                                $zip->getFromName(
-                                    'META-INF/manifest.xml'
-                                )
-                            )
+                        $this->getSecurityScannerOrThrow()->scan($zip->getFromName('META-INF/manifest.xml')),
+                        'SimpleXMLElement',
+                        Settings::getLibXmlLoaderOptions()
                     );
                     if ($xml !== false) {
                         $namespacesContent = $xml->getNamespaces(true);
@@ -100,10 +98,9 @@ class Ods extends BaseReader
 
         $xml = new XMLReader();
         $xml->xml(
-            $this->getSecurityScannerOrThrow()
-                ->scanFile(
-                    'zip://' . realpath($filename) . '#' . self::INITIAL_FILE
-                )
+            $this->getSecurityScannerOrThrow()->scanFile('zip://' . realpath($filename) . '#' . self::INITIAL_FILE),
+            null,
+            Settings::getLibXmlLoaderOptions()
         );
         $xml->setParserProperty(2, true);
 
@@ -148,10 +145,9 @@ class Ods extends BaseReader
 
         $xml = new XMLReader();
         $xml->xml(
-            $this->getSecurityScannerOrThrow()
-                ->scanFile(
-                    'zip://' . realpath($filename) . '#' . self::INITIAL_FILE
-                )
+            $this->getSecurityScannerOrThrow()->scanFile('zip://' . realpath($filename) . '#' . self::INITIAL_FILE),
+            null,
+            Settings::getLibXmlLoaderOptions()
         );
         $xml->setParserProperty(2, true);
 
@@ -238,7 +234,6 @@ class Ods extends BaseReader
     {
         // Create new Spreadsheet
         $spreadsheet = new Spreadsheet();
-        $spreadsheet->setValueBinder($this->valueBinder);
         $spreadsheet->removeSheetByIndex(0);
 
         // Load into this instance
@@ -258,8 +253,9 @@ class Ods extends BaseReader
         // Meta
 
         $xml = @simplexml_load_string(
-            $this->getSecurityScannerOrThrow()
-                ->scan($zip->getFromName('meta.xml'))
+            $this->getSecurityScannerOrThrow()->scan($zip->getFromName('meta.xml')),
+            'SimpleXMLElement',
+            Settings::getLibXmlLoaderOptions()
         );
         if ($xml === false) {
             throw new Exception('Unable to read data from {$pFilename}');
@@ -273,8 +269,8 @@ class Ods extends BaseReader
 
         $dom = new DOMDocument('1.01', 'UTF-8');
         $dom->loadXML(
-            $this->getSecurityScannerOrThrow()
-                ->scan($zip->getFromName('styles.xml'))
+            $this->getSecurityScannerOrThrow()->scan($zip->getFromName('styles.xml')),
+            Settings::getLibXmlLoaderOptions()
         );
 
         $pageSettings = new PageSettings($dom);
@@ -283,8 +279,8 @@ class Ods extends BaseReader
 
         $dom = new DOMDocument('1.01', 'UTF-8');
         $dom->loadXML(
-            $this->getSecurityScannerOrThrow()
-                ->scan($zip->getFromName(self::INITIAL_FILE))
+            $this->getSecurityScannerOrThrow()->scan($zip->getFromName(self::INITIAL_FILE)),
+            Settings::getLibXmlLoaderOptions()
         );
 
         $officeNs = (string) $dom->lookupNamespaceUri('office');
@@ -693,8 +689,8 @@ class Ods extends BaseReader
     {
         $dom = new DOMDocument('1.01', 'UTF-8');
         $dom->loadXML(
-            $this->getSecurityScannerOrThrow()
-                ->scan($zip->getFromName('settings.xml'))
+            $this->getSecurityScannerOrThrow()->scan($zip->getFromName('settings.xml')),
+            Settings::getLibXmlLoaderOptions()
         );
         //$xlinkNs = $dom->lookupNamespaceUri('xlink');
         $configNs = (string) $dom->lookupNamespaceUri('config');

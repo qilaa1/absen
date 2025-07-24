@@ -33,7 +33,7 @@ $endOfWeek = clone $startOfWeek;
 $endOfWeek->modify('+1 week');
 
 // Siapkan array untuk kehadiran mingguan
-$weeklyAttendance = array_fill(0, 7, 0); // Inisialisasi array dengan 7 elemen (0 untuk setiap hari)
+$weeklyAttendance = array_fill(0, 6, 0); // Inisialisasi array dengan 7 elemen (0 untuk setiap hari)
 
 // Query untuk mendapatkan kehadiran mingguan
 $queryMingguan = $pdo->prepare("
@@ -53,9 +53,16 @@ $queryMingguan->execute();
 // Mengisi data kehadiran mingguan
 $dataMingguan = $queryMingguan->fetchAll(PDO::FETCH_ASSOC);
 foreach ($dataMingguan as $row) {
-    $hariIndex = ($row['hari'] + 6) % 7; // Mengubah DAYOFWEEK ke indeks array (0 untuk Senin, 1 untuk Selasa, dst.)
+    $dayOfWeek = (int)$row['hari'];
+    
+    if ($dayOfWeek == 1) {
+        continue; // Lewati Minggu
+    }
+
+    $hariIndex = ($dayOfWeek + 5) % 7; // Konversi: 2=Senin(0), 3=Selasa(1), ..., 7=Sabtu(5)
     $weeklyAttendance[$hariIndex] = (int) $row['total_kehadiran'];
 }
+
 
 
 
@@ -91,7 +98,7 @@ if (isset($_SESSION['role']) && $_SESSION['role'] !== 'owner') {
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
     <meta name="description" content="" />
     <meta name="author" content="" />
-    <title>Si Hadir - Dashboard</title>
+    <title>Absensi Karyawan - Dashboard</title>
     <!-- Favicon-->
     <link rel="icon" type="image/x-icon" href="../../../assets/icon/favicon.ico" />
     <!-- Core theme CSS (includes Bootstrap)-->
@@ -160,7 +167,7 @@ if (isset($_SESSION['role']) && $_SESSION['role'] !== 'owner') {
     <div class="d-flex" id="wrapper">
         <!-- Sidebar-->
         <div class="border-end-0 bg-white" id="sidebar-wrapper">
-            <div class="sidebar-heading border-bottom-0"><strong>Si Hadir</strong></div>
+            <div class="sidebar-heading border-bottom-0"><strong>Absensi Karyawan</strong></div>
             <div class="list-group list-group-flush">
                 <a class="list-group-item list-group-item-action list-group-item-light p-3 border-bottom-0"
                     href="dashboard.php">
@@ -170,15 +177,6 @@ if (isset($_SESSION['role']) && $_SESSION['role'] !== 'owner') {
                             d="M520-600v-240h320v240H520ZM120-440v-400h320v400H120Zm400 320v-400h320v400H520Zm-400 0v-240h320v240H120Zm80-400h160v-240H200v240Zm400 320h160v-240H600v240Zm0-480h160v-80H600v80ZM200-200h160v-80H200v80Zm160-320Zm240-160Zm0 240ZM360-280Z" />
                     </svg>
                     Dashboard
-                </a>
-                <a class="list-group-item list-group-item-action list-group-item-light p-3 border-bottom-0"
-                    href="absen.php">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" class="sidebar-icon"
-                        fill="#6c757d">
-                        <path
-                            d="M520-600v-240h320v240H520ZM120-440v-400h320v400H120Zm400 320v-400h320v400H520Zm-400 0v-240h320v240H120Zm80-400h160v-240H200v240Zm400 320h160v-240H600v240Zm0-480h160v-80H600v80ZM200-200h160v-80H200v80Zm160-320Zm240-160Zm0 240ZM360-280Z" />
-                    </svg>
-                    Absen
                 </a>
                 <a class="list-group-item list-group-item-action list-group-item-light p-3 border-bottom-0"
                     href="attendanceMonitor.php">
@@ -205,6 +203,12 @@ if (isset($_SESSION['role']) && $_SESSION['role'] !== 'owner') {
                             d="M16 11c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 3-1.34 3-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V20h14v-3.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 2.02 1.97 3.45V20h6v-3.5c0-2.33-4.67-3.5-7-3.5z" />
                     </svg>
                     Manajemen Staff
+                </a>
+                <a class="list-group-item list-group-item-action list-group-item-light p-3 border-bottom-0" href="/absensi/app/scan/index.php">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" class="sidebar-icon" fill="#6c757d">
+                        <path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h280v80H200v560h280v80H200Zm440-160-55-58 102-102H360v-80h327L585-622l55-58 200 200-200 200Z" />
+                    </svg>
+                    Qr
                 </a>
                 <a class="list-group-item list-group-item-action list-group-item-light p-3 border-bottom-0"
                     href="permit.php">
@@ -472,7 +476,7 @@ if (isset($_SESSION['role']) && $_SESSION['role'] !== 'owner') {
             const weeklyChart = new Chart(weeklyChartCtx, {
                 type: 'bar',
                 data: {
-                    labels: ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'],
+                    labels: [ 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'],
                     datasets: [{
                         label: 'Presensi Seminggu Terakhir',
                         data: weeklyData,

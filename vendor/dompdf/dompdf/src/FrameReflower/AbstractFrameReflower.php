@@ -113,16 +113,7 @@ abstract class AbstractFrameReflower
                     break;
                 }
             case "fixed":
-                $root = $frame->get_root();
-                $parent = $frame->get_parent();
-                do {
-                    $parents_parent = $parent->get_parent();
-                    if ($parents_parent == $root) {
-                        break;
-                    }
-                    $parent = $parents_parent;
-                } while ($parent);
-                $initial_cb = $parent->get_containing_block();
+                $initial_cb = $frame->get_root()->get_first_child()->get_containing_block();
                 $frame->set_containing_block($initial_cb["x"], $initial_cb["y"], $initial_cb["w"], $initial_cb["h"]);
                 break;
             default:
@@ -498,14 +489,14 @@ abstract class AbstractFrameReflower
      *
      * @return string The resulting string
      */
-    protected function resolve_content(): ?string
+    protected function resolve_content(): string
     {
         $frame = $this->_frame;
         $style = $frame->get_style();
         $content = $style->content;
 
         if ($content === "normal" || $content === "none") {
-            return null;
+            return "";
         }
 
         $quotes = $style->quotes;
@@ -586,7 +577,7 @@ abstract class AbstractFrameReflower
         if ($frame->get_node()->nodeName === "dompdf_generated") {
             $content = $this->resolve_content();
 
-            if ($content !== null) {
+            if ($content !== "") {
                 $node = $frame->get_node()->ownerDocument->createTextNode($content);
 
                 $new_style = $style->get_stylesheet()->create_style();

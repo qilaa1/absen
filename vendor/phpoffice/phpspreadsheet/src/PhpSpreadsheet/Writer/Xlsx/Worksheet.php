@@ -2,7 +2,6 @@
 
 namespace PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
-use Composer\Pcre\Preg;
 use PhpOffice\PhpSpreadsheet\Calculation\Information\ErrorValue;
 use PhpOffice\PhpSpreadsheet\Calculation\Information\ExcelError;
 use PhpOffice\PhpSpreadsheet\Cell\Cell;
@@ -130,9 +129,6 @@ class Worksheet extends WriterPart
         // Breaks
         $this->writeBreaks($objWriter, $worksheet);
 
-        // IgnoredErrors
-        $this->writeIgnoredErrors($objWriter);
-
         // Drawings and/or Charts
         $this->writeDrawings($objWriter, $worksheet, $includeCharts);
 
@@ -144,6 +140,9 @@ class Worksheet extends WriterPart
 
         // AlternateContent
         $this->writeAlternateContent($objWriter, $worksheet);
+
+        // IgnoredErrors
+        $this->writeIgnoredErrors($objWriter);
 
         // BackgroundImage must come after ignored, before table
         $this->writeBackgroundImage($objWriter, $worksheet);
@@ -984,10 +983,10 @@ class Worksheet extends WriterPart
                 $objWriter->writeAttribute('sqref', $dv->getSqref() ?? $coordinate);
 
                 if ($dv->getFormula1() !== '') {
-                    $objWriter->writeElement('formula1', FunctionPrefix::addFunctionPrefix($dv->getFormula1()));
+                    $objWriter->writeElement('formula1', $dv->getFormula1());
                 }
                 if ($dv->getFormula2() !== '') {
-                    $objWriter->writeElement('formula2', FunctionPrefix::addFunctionPrefix($dv->getFormula2()));
+                    $objWriter->writeElement('formula2', $dv->getFormula2());
                 }
 
                 $objWriter->endElement();
@@ -1536,7 +1535,7 @@ class Worksheet extends WriterPart
 
     private function parseRef(string $coordinate, string $ref): string
     {
-        if (!Preg::isMatch('/^([A-Z]{1,3})([0-9]{1,7})(:([A-Z]{1,3})([0-9]{1,7}))?$/', $ref, $matches)) {
+        if (preg_match('/^([A-Z]{1,3})([0-9]{1,7})(:([A-Z]{1,3})([0-9]{1,7}))?$/', $ref, $matches) !== 1) {
             return $ref;
         }
         if (!isset($matches[3])) { // single cell, not range
@@ -1578,11 +1577,7 @@ class Worksheet extends WriterPart
         $mappedType = $pCell->getDataType();
         if ($mappedType === DataType::TYPE_FORMULA) {
             if ($this->useDynamicArrays) {
-                if (preg_match(PhpspreadsheetWorksheet::FUNCTION_LIKE_GROUPBY, $cellValue) === 1) {
-                    $tempCalc = [];
-                } else {
-                    $tempCalc = $pCell->getCalculatedValue();
-                }
+                $tempCalc = $pCell->getCalculatedValue();
                 if (is_array($tempCalc)) {
                     $objWriter->writeAttribute('cm', '1');
                 }

@@ -53,11 +53,12 @@ function checkEmployeeRole($pdo, $userId)
 
 function verifyUniqueCode($pdo, $uniqueCode)
 {
-    $query = "SELECT * FROM qr_code WHERE kode_unik = ?";
+    $query = "SELECT * FROM qr_code WHERE kode_unik = ? AND is_used = 0";
     $stmt = $pdo->prepare($query);
     $stmt->execute([$uniqueCode]);
     return $stmt->fetch(PDO::FETCH_ASSOC);
 }
+
 
 function getActiveShiftSchedule($pdo, $employeeId, $date)
 {
@@ -125,6 +126,11 @@ function getOrCreateAttendanceRecord($pdo, $employeeId, $date, $shiftId)
 
     return ['status' => 'success', 'data' => $record];
 }
+function markCodeAsUsed($pdo, $uniqueCode)
+{
+    $stmt = $pdo->prepare("UPDATE qr_code SET is_used = 1 WHERE kode_unik = ?");
+    $stmt->execute([$uniqueCode]);
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
@@ -185,78 +191,94 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $attendance = $attendance['data'];
 
-        // Check if both check-in and check-out are already filled
-        if ($attendance['waktu_masuk'] != '00:00:00' && $attendance['waktu_keluar'] != '00:00:00') {
-            throw new Exception('Anda sudah melakukan presensi masuk dan keluar untuk hari ini.');
+// Check if both check-in and check-out are already filled
+if ($attendance['waktu_masuk'] != '00:00:00' && $attendance['waktu_keluar'] != '00:00:00') {
+    throw new Exception('Anda sudah melakukan presensi masuk dan keluar untuk hari ini.');
+}
+
+$shiftStart = new DateTime($currentDate . ' ' . $shiftSchedule['jam_masuk']);
+$shiftEnd = new DateTime($currentDate . ' ' . $shiftSchedule['jam_keluar']);
+
+// Combined check-in and check-out logic
+if ($uniqueCode) {
+    // If waktu_masuk is still default, this is a check-in
+    if ($attendance['waktu_masuk'] == '00:00:00') {
+        // Calculate the earliest acceptable check-in time (45 minutes before shift start)
+        $earliestCheckInTime = (clone $shiftStart)->modify('-45 minutes');
+
+        // Check if the current time is before the earliest check-in time
+        if ($currentTime < $earliestCheckInTime) {
+            throw new Exception('Terlalu awal untuk presensi. Presensi dimulai 45 menit sebelum jadwal shift pada pukul ' . $earliestCheckInTime->format('H:i'));
         }
 
-        $shiftStart = new DateTime($currentDate . ' ' . $shiftSchedule['jam_masuk']);
-        $shiftEnd = new DateTime($currentDate . ' ' . $shiftSchedule['jam_keluar']);
+        // Check if the current time is after the shift end time
+        if ($currentTime > $shiftEnd) {
+            throw new Exception('Anda melewati jam keluar shift dan tidak diperbolehkan presensi. Anda melewatkan shift presensi hari ini.');
+        }
 
-        // Combined check-in and check-out logic
-        if ($uniqueCode) {
-            // If waktu_masuk is still default, this is a check-in
-            if ($attendance['waktu_masuk'] == '00:00:00') {
-                // Calculate the earliest acceptable check-in time (45 minutes before shift start)
-                $earliestCheckInTime = (clone $shiftStart)->modify('-45 minutes');
+        // Determine attendance status
+        $status = ($currentTime <= $shiftStart) ? 'dalam_shift' : 'terlambat';
 
-                // Check if the current time is before the earliest check-in time
-                if ($currentTime < $earliestCheckInTime) {
-                    throw new Exception('Terlalu awal untuk presensi. Presensi dimulai 45 menit sebelum jadwal shift pada pukul ' . $earliestCheckInTime->format('H:i'));
-                }
+        // Update the attendance record for check-in
+        $query = "UPDATE absensi SET waktu_masuk = CURRENT_TIME(), status_kehadiran = ?, kode_unik = ? WHERE id = ?";
+        $stmt = $pdo->prepare($query);
+        if (!$stmt->execute([$status, $uniqueCode, $attendance['id']])) {
+            throw new Exception('Gagal mencatat presensi masuk.');
+        }
 
-                // Check if the current time is after the shift end time
-                if ($currentTime > $shiftEnd) {
-                    throw new Exception('Anda melewati jam keluar shift dan tidak diperbolehkan presensi. Anda melewatkan shift presensi hari ini.');
-                }
+        // Delete QR after check-in
+        $stmt = $pdo->prepare("DELETE FROM qr_code WHERE kode_unik = ?");
+        $stmt->execute([$uniqueCode]);
 
-                // Determine attendance status
-                $status = ($currentTime <= $shiftStart) ? 'dalam_shift' : 'terlambat';
-
-                // Update the attendance record for check-in
-                $query = "UPDATE absensi SET waktu_masuk = CURRENT_TIME(), status_kehadiran = ?, kode_unik = ? WHERE id = ?";
-                $stmt = $pdo->prepare($query);
-                if (!$stmt->execute([$status, $uniqueCode, $attendance['id']])) {
-                    throw new Exception('Gagal mencatat presensi masuk.');
-                }
-
+        $message = [
+            'status' => 'success',
+            'text' => 'Presensi masuk berhasil dicatat.'
+        ];
+    }
+    // Handle check-out
+    else if ($attendance['waktu_keluar'] == '00:00:00') {
+        // If trying to leave early
+        if ($currentTime < $shiftEnd) {
+            // If this is the initial early leave request
+            if (!isset($_POST['confirm_early_leave'])) {
                 $message = [
-                    'status' => 'success',
-                    'text' => 'Presensi masuk berhasil dicatat.'
+                    'status' => 'confirm',
+                    'text' => 'Anda akan melakukan pulang lebih awal dari jadwal shift. Apakah Anda yakin?',
+                    'attendance_id' => $attendance['id']
                 ];
             }
-            // Handle check-out
-            else if ($attendance['waktu_keluar'] == '00:00:00') {
-                // If trying to leave early
-                if ($currentTime < $shiftEnd) {
-                    // If this is the initial early leave request
-                    if (!isset($_POST['confirm_early_leave'])) {
-                        $message = [
-                            'status' => 'confirm',
-                            'text' => 'Anda akan melakukan pulang lebih awal dari jadwal shift. Apakah Anda yakin?',
-                            'attendance_id' => $attendance['id']
-                        ];
-                    }
-                    // If early leave is confirmed
-                    else {
-                        $stmt = $pdo->prepare("UPDATE absensi SET waktu_keluar = CURRENT_TIME(), status_kehadiran = 'pulang_dahulu', keterangan = 'Pulang lebih awal dari jadwal', kode_unik = ? WHERE id = ?");
-                        if (!$stmt->execute([$uniqueCode, $attendance['id']])) {
-                            throw new Exception('Gagal mengupdate presensi pulang dahulu.');
-                        }
-                        $message = ['status' => 'success', 'text' => 'Presensi pulang dahulu berhasil dicatat.'];
-                    }
+            // If early leave is confirmed
+            else {
+                $stmt = $pdo->prepare("UPDATE absensi SET waktu_keluar = CURRENT_TIME(), status_kehadiran = 'pulang_dahulu', keterangan = 'Pulang lebih awal dari jadwal', kode_unik = ? WHERE id = ?");
+                if (!$stmt->execute([$uniqueCode, $attendance['id']])) {
+                    throw new Exception('Gagal mengupdate presensi pulang dahulu.');
                 }
-                // Normal check-out after shift end
-                else {
-                    $stmt = $pdo->prepare("UPDATE absensi SET waktu_keluar = CURRENT_TIME(), status_kehadiran = 'hadir', kode_unik = ? WHERE id = ?");
-                    if (!$stmt->execute([$uniqueCode, $attendance['id']])) {
-                        throw new Exception('Gagal mengupdate presensi keluar.');
-                    }
-                    $message = ['status' => 'success', 'text' => 'Presensi keluar berhasil dicatat.'];
-                }
+
+                // Delete QR after early check-out
+                $stmt = $pdo->prepare("DELETE FROM qr_code WHERE kode_unik = ?");
+                $stmt->execute([$uniqueCode]);
+
+                $message = ['status' => 'success', 'text' => 'Presensi pulang dahulu berhasil dicatat.'];
             }
         }
-        $pdo->commit();
+        // Normal check-out after shift end
+        else {
+            $stmt = $pdo->prepare("UPDATE absensi SET waktu_keluar = CURRENT_TIME(), status_kehadiran = 'hadir', kode_unik = ? WHERE id = ?");
+            if (!$stmt->execute([$uniqueCode, $attendance['id']])) {
+                throw new Exception('Gagal mengupdate presensi keluar.');
+            }
+
+            // Delete QR after normal check-out
+            $stmt = $pdo->prepare("DELETE FROM qr_code WHERE kode_unik = ?");
+            $stmt->execute([$uniqueCode]);
+
+            $message = ['status' => 'success', 'text' => 'Presensi keluar berhasil dicatat.'];
+        }
+    }
+}
+
+$pdo->commit();
+
     } catch (Exception $e) {
         if ($pdo->inTransaction()) {
             $pdo->rollBack();
@@ -283,95 +305,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
     <meta name="description" content="" />
     <meta name="author" content="" />
-    <title>Si Hadir - Presensi</title>
+    <title>Absensi Karyawan - Presensi</title>
     <!-- Favicon-->
     <link rel="icon" type="image/x-icon" href="../../../assets/favicon.ico" />
     <!-- Core theme CSS (includes Bootstrap)-->
     <link href="../../../assets/css/styles.css" rel="stylesheet" />
     <!-- Link Google Fonts untuk Poppins -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <script src="https://rawgit.com/schmich/instascan-builds/master/instascan.min.js"></script>
+
     <style>
-        /* QR Code scanner styling */
-        .scanner-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 2rem;
-        }
-
-        #preview {
-            width: 80%;
-            height: auto;
-            border-radius: 10px;
-            border: 2px solid #ddd;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-
-            /* Tambahan penting */
-            position: relative;
-            z-index: 1;
-        }
-
-        #sidebarToggle {
-            position: relative;
-            z-index: 10;
-        }
-
-        #wrapper.toggled #sidebar-wrapper {
-            margin-left: -250px;
-            transition: margin 0.3s ease-in-out;
-        }
-
-
-        /* Modern Form Styling */
-        .attendance-form-card {
-            background: white;
-            border-radius: 24px;
-            padding: 3rem;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-        }
-
-        .modern-label {
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: #4b5563;
-            margin-bottom: 0.75rem;
-            display: block;
-        }
-
-        .modern-input-group {
-            position: relative;
-            margin-bottom: 0.5rem;
-        }
-
-        .modern-input {
-            width: 100%;
-            padding: 1rem 1.5rem;
-            font-size: 1.125rem;
-            border: 2px solid #e5e7eb;
-            border-radius: 12px;
-            background: #f9fafb;
-            transition: all 0.3s ease;
-        }
-
-        .modern-input:focus {
-            outline: none;
-            border-color: #6366f1;
-            background: white;
-            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
-        }
-
         /* Mengatur font Poppins hanya untuk <strong> di dalam sidebar-heading */
         #sidebar-wrapper .sidebar-heading strong {
             font-family: 'Poppins', sans-serif;
-            /* Menggunakan font Poppins hanya untuk Si Hadir */
+            /* Menggunakan font Poppins hanya untuk Absensi Karyawan */
             font-weight: 900;
             /* Menebalkan tulisan */
             font-size: 28px;
             /* Membesarkan ukuran font */
-            width: 250px;
-            margin-left: 0;
-            transition: margin 0.3s ease-in-out;
         }
 
         /* Menghilangkan tombol toggle navbar dan memastikan navbar selalu terlihat */
@@ -402,18 +355,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             .navbar-nav .dropdown-menu {
                 position: absolute;
-            }
-        }
-
-        @media (max-width: 991.98px) {
-            #wrapper.toggled #sidebar-wrapper {
-                margin-left: 0;
-                /* Buka saat toggled */
-            }
-
-            #sidebar-wrapper {
-                margin-left: -250px;
-                /* Tutup default saat kecil */
             }
         }
 
@@ -637,41 +578,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="d-flex" id="wrapper">
         <!-- Sidebar-->
         <div class="border-end-0 bg-white" id="sidebar-wrapper">
-            <div class="sidebar-heading border-bottom-0"><strong>Si Hadir</strong></div>
+            <div class="sidebar-heading border-bottom-0"><strong>Absensi Karyawan</strong></div>
             <div class="list-group list-group-flush">
-                <a class="list-group-item list-group-item-action list-group-item-light p-3 border-bottom-0" href="attendance.php">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" class="sidebar-icon" fill="#6c757d">
-                        <path d="M160-80q-33 0-56.5-23.5T80-160v-440q0-33 23.5-56.5T160-680h200v-120q0-33 23.5-56.5T440-880h80q33 0 56.5 23.5T600-800v120h200q33 0 56.5 23.5T880-600v440q0 33-23.5 56.5T800-80H160Zm0-80h640v-440H600q0 33-23.5 56.5T520-520h-80q-33 0-56.5-23.5T360-600H160v440Zm80-80h240v-18q0-17-9.5-31.5T444-312q-20-9-40.5-13.5T360-330q-23 0-43.5 4.5T276-312q-17 8-26.5 22.5T240-258v18Zm320-60h160v-60H560v60Zm-200-60q25 0 42.5-17.5T420-420q0-25-17.5-42.5T360-480q-25 0-42.5 17.5T300-420q0 25 17.5 42.5T360-360Zm200-60h160v-60H560v60ZM440-600h80v-200h-80v200Zm40 220Z" />
+                <a class="list-group-item list-group-item-action list-group-item-light p-3 border-bottom-0"
+                    href="attendance.php">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" class="sidebar-icon"
+                        fill="#6c757d">
+                        <path
+                            d="M160-80q-33 0-56.5-23.5T80-160v-440q0-33 23.5-56.5T160-680h200v-120q0-33 23.5-56.5T440-880h80q33 0 56.5 23.5T600-800v120h200q33 0 56.5 23.5T880-600v440q0 33-23.5 56.5T800-80H160Zm0-80h640v-440H600q0 33-23.5 56.5T520-520h-80q-33 0-56.5-23.5T360-600H160v440Zm80-80h240v-18q0-17-9.5-31.5T444-312q-20-9-40.5-13.5T360-330q-23 0-43.5 4.5T276-312q-17 8-26.5 22.5T240-258v18Zm320-60h160v-60H560v60Zm-200-60q25 0 42.5-17.5T420-420q0-25-17.5-42.5T360-480q-25 0-42.5 17.5T300-420q0 25 17.5 42.5T360-360Zm200-60h160v-60H560v60ZM440-600h80v-200h-80v200Zm40 220Z" />
                     </svg>
                     Presensi
                 </a>
-                <a class="list-group-item list-group-item-action list-group-item-light p-3 border-bottom-0" href="schedule.php">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="sidebar-icon" fill="#6c757d" width="24" height="24">
-                        <path d="M19 4h-1V3c0-.55-.45-1-1-1s-1 .45-1 1v1H8V3c0-.55-.45-1-1-1s-1 .45-1 1v1H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM9 14H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2zm-8 4H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2z" />
+                <a class="list-group-item list-group-item-action list-group-item-light p-3 border-bottom-0"
+                    href="schedule.php">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="sidebar-icon" fill="#6c757d"
+                        width="24" height="24">
+                        <path
+                            d="M19 4h-1V3c0-.55-.45-1-1-1s-1 .45-1 1v1H8V3c0-.55-.45-1-1-1s-1 .45-1 1v1H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM9 14H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2zm-8 4H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2z" />
                     </svg>
                     Jadwal
                 </a>
-                <a class="list-group-item list-group-item-action list-group-item-light p-3 border-bottom-0" href="attendanceHistory.php" style="display: flex; align-items: center;">
-                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#6c757d" style="margin-right: 8px;">
-                        <path d="M480-120q-138 0-240.5-91.5T122-440h82q14 104 92.5 172T480-200q117 0 198.5-81.5T760-480q0-117-81.5-198.5T480-760q-69 0-129 32t-101 88h110v80H120v-240h80v94q51-64 124.5-99T480-840q75 0 140.5 28.5t114 77q48.5 48.5 77 114T840-480q0 75-28.5 140.5t-77 114q-48.5 48.5-114 77T480-120Zm112-192L440-464v-216h80v184l128 128-56 56Z" />
+                <a class="list-group-item list-group-item-action list-group-item-light p-3 border-bottom-0"
+                    href="attendanceHistory.php" style="display: flex; align-items: center;">
+                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"
+                        fill="#6c757d" style="margin-right: 8px;">
+                        <path
+                            d="M480-120q-138 0-240.5-91.5T122-440h82q14 104 92.5 172T480-200q117 0 198.5-81.5T760-480q0-117-81.5-198.5T480-760q-69 0-129 32t-101 88h110v80H120v-240h80v94q51-64 124.5-99T480-840q75 0 140.5 28.5t114 77q48.5 48.5 77 114T840-480q0 75-28.5 140.5t-77 114q-48.5 48.5-114 77T480-120Zm112-192L440-464v-216h80v184l128 128-56 56Z" />
                     </svg>
                     <span>Riwayat Kehadiran</span>
                 </a>
-                <a class="list-group-item list-group-item-action list-group-item-light p-3 border-bottom-0" href="permit.php">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" class="sidebar-icon" fill="#6c757d">
-                        <path d="M160-200v-440 440-15 15Zm0 80q-33 0-56.5-23.5T80-200v-440q0-33 23.5-56.5T160-720h160v-80q0-33 23.5-56.5T400-880h160q33 0 56.5 23.5T640-800v80h160q33 0 56.5 23.5T880-640v171q-18-13-38-22.5T800-508v-132H160v440h283q3 21 9 41t15 39H160Zm240-600h160v-80H400v80ZM720-40q-83 0-141.5-58.5T520-240q0-83 58.5-141.5T720-440q83 0 141.5 58.5T920-240q0 83-58.5 141.5T720-40Zm20-208v-112h-40v128l86 86 28-28-74-74Z" />
+                <a class="list-group-item list-group-item-action list-group-item-light p-3 border-bottom-0"
+                    href="permit.php">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" class="sidebar-icon"
+                        fill="#6c757d">
+                        <path
+                            d="M160-200v-440 440-15 15Zm0 80q-33 0-56.5-23.5T80-200v-440q0-33 23.5-56.5T160-720h160v-80q0-33 23.5-56.5T400-880h160q33 0 56.5 23.5T640-800v80h160q33 0 56.5 23.5T880-640v171q-18-13-38-22.5T800-508v-132H160v440h283q3 21 9 41t15 39H160Zm240-600h160v-80H400v80ZM720-40q-83 0-141.5-58.5T520-240q0-83 58.5-141.5T720-440q83 0 141.5 58.5T920-240q0 83-58.5 141.5T720-40Zm20-208v-112h-40v128l86 86 28-28-74-74Z" />
                     </svg>
                     Cuti & Perizinan
                 </a>
-                <a class="list-group-item list-group-item-action list-group-item-light p-3 border-bottom-0" href="/Si_Hadir/web/sihadir/app/scan/index.php">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" class="sidebar-icon" fill="#6c757d">
-                        <path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h280v80H200v560h280v80H200Zm440-160-55-58 102-102H360v-80h327L585-622l55-58 200 200-200 200Z" />
-                    </svg>
-                    Qr
-                </a>
-                <a class="list-group-item list-group-item-action list-group-item-light p-3 border-bottom-0" href="logout.php">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" class="sidebar-icon" fill="#6c757d">
-                        <path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h280v80H200v560h280v80H200Zm440-160-55-58 102-102H360v-80h327L585-622l55-58 200 200-200 200Z" />
+                <a class="list-group-item list-group-item-action list-group-item-light p-3 border-bottom-0"
+                    href="logout.php">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" class="sidebar-icon"
+                        fill="#6c757d">
+                        <path
+                            d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h280v80H200v560h280v80H200Zm440-160-55-58 102-102H360v-80h327L585-622l55-58 200 200-200 200Z" />
                     </svg>
                     Log out
                 </a>
@@ -799,11 +749,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../../../assets/js/scripts.js"></script>
-    <script src="https://rawgit.com/schmich/instascan-builds/master/instascan.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="../../../assets/js/scripts.js"></script>
     <script>
-        let scanner;
+    let scanner;
         const video = document.getElementById('preview');
 
         // Kamera QR
@@ -844,8 +791,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 alert("QR tidak bisa dibaca dari gambar.");
             }
         });
-
-
+    </script>
+   <script>
+        
         // Update time and date
         function updateDateTime() {
             const now = new Date();
@@ -1013,5 +961,3 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </script>
 
 </body>
-
-</html>

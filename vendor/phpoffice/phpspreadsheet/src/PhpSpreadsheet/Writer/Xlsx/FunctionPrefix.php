@@ -2,7 +2,6 @@
 
 namespace PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
-use Composer\Pcre\Preg;
 use PhpOffice\PhpSpreadsheet\Calculation\Calculation;
 
 class FunctionPrefix
@@ -131,6 +130,7 @@ class FunctionPrefix
         . '|ifs'
         . '|maxifs'
         . '|minifs'
+        . '|sumifs'
         . '|textjoin'
         // functions added with Excel 365
         . '|anchorarray'
@@ -143,7 +143,6 @@ class FunctionPrefix
         . '|drop'
         . '|expand'
         . '|filter'
-        . '|groupby'
         . '|hstack'
         . '|isomitted'
         . '|lambda'
@@ -185,7 +184,7 @@ class FunctionPrefix
      */
     protected static function addXlfnPrefix(string $functionString): string
     {
-        return Preg::replace(self::XLFNREGEXP, '_xlfn.$1(', $functionString);
+        return (string) preg_replace(self::XLFNREGEXP, '_xlfn.$1(', $functionString);
     }
 
     /**
@@ -193,7 +192,7 @@ class FunctionPrefix
      */
     protected static function addXlwsPrefix(string $functionString): string
     {
-        return Preg::replace(self::XLWSREGEXP, '_xlws.$1(', $functionString);
+        return (string) preg_replace(self::XLWSREGEXP, '_xlws.$1(', $functionString);
     }
 
     /**
@@ -201,9 +200,9 @@ class FunctionPrefix
      */
     public static function addFunctionPrefix(string $functionString): string
     {
-        $functionString = Preg::replaceCallback(
+        $functionString = (string) preg_replace_callback(
             Calculation::CALCULATION_REGEXP_CELLREF_SPILL,
-            fn (array $matches) => 'ANCHORARRAY(' . substr((string) $matches[0], 0, -1) . ')',
+            fn (array $matches) => 'ANCHORARRAY(' . substr($matches[0], 0, -1) . ')',
             $functionString
         );
 

@@ -164,10 +164,8 @@ class Functions
 
             return str_replace('""""', '""', '=' . $condition);
         }
-        $operator = $operand = '';
-        if (1 === preg_match('/(=|<[>=]?|>=?)(.*)/', $condition, $matches)) {
-            [, $operator, $operand] = $matches;
-        }
+        preg_match('/(=|<[>=]?|>=?)(.*)/', $condition, $matches);
+        [, $operator, $operand] = $matches;
 
         $operand = self::operandSpecialHandling($operand);
         if (is_numeric(trim($operand, '"'))) {
@@ -214,32 +212,6 @@ class Functions
             return (array) $array;
         }
 
-        $flattened = [];
-        $stack = array_values($array);
-
-        while (!empty($stack)) {
-            $value = array_shift($stack);
-
-            if (is_array($value)) {
-                array_unshift($stack, ...array_values($value));
-            } else {
-                $flattened[] = $value;
-            }
-        }
-
-        return $flattened;
-    }
-
-    /**
-     * Convert a multi-dimensional array to a simple 1-dimensional array.
-     * Same as above but argument is specified in ... format.
-     *
-     * @param mixed $array Array to be flattened
-     *
-     * @return array Flattened array
-     */
-    public static function flattenArray2(mixed ...$array): array
-    {
         $flattened = [];
         $stack = array_values($array);
 

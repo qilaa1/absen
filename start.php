@@ -15,7 +15,7 @@ if (!isset($_SESSION['setup']) || $_SESSION['setup'] !== true) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Si Hadir - Sistem Informasi Kehadiran</title>
+    <title>Absensi Karyawan - Sistem Informasi Kehadiran</title>
     <link rel="icon" type="image/x-icon" href="assets/icon/favicon.ico" />
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
@@ -231,22 +231,11 @@ if (!isset($_SESSION['setup']) || $_SESSION['setup'] !== true) {
 <body>
     <div class="container">
         <header class="header">
-            <h1 class="title">Si Hadir</h1>
+            <h1 class="title">Absensi Karyawan</h1>
             <p class="subtitle">
                 Sistem presensi modern yang memudahkan pengelolaan kehadiran karyawan dengan teknologi terkini
             </p>
         </header>
-
-        <div class="features">
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <i class="fas fa-mobile-alt"></i>
-                </div>
-                <h3 class="feature-title">Presensi Mobile</h3>
-                <p class="feature-description">
-                    Lakukan presensi dengan mudah melalui aplikasi Android yang user-friendly dan efisien
-                </p>
-            </div>
 
             <div class="feature-card">
                 <div class="feature-icon">

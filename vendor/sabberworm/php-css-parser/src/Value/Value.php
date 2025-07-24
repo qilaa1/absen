@@ -16,8 +16,6 @@ abstract class Value implements Renderable
 {
     /**
      * @var int
-     *
-     * @internal since 8.8.0
      */
     protected $iLineNo;
 
@@ -36,8 +34,6 @@ abstract class Value implements Renderable
      *
      * @throws UnexpectedTokenException
      * @throws UnexpectedEOFException
-     *
-     * @internal since V8.8.0
      */
     public static function parseValue(ParserState $oParserState, array $aListDelimiters = [])
     {
@@ -114,8 +110,6 @@ abstract class Value implements Renderable
      *
      * @throws UnexpectedEOFException
      * @throws UnexpectedTokenException
-     *
-     * @internal since V8.8.0
      */
     public static function parseIdentifierOrFunction(ParserState $oParserState, $bIgnoreCase = false)
     {
@@ -146,8 +140,6 @@ abstract class Value implements Renderable
      * @throws UnexpectedEOFException
      * @throws UnexpectedTokenException
      * @throws SourceException
-     *
-     * @internal since V8.8.0
      */
     public static function parsePrimitiveValue(ParserState $oParserState)
     {

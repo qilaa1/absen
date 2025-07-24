@@ -124,6 +124,12 @@ function isMatchingDevice($pdo, $user_id, $device_hash) {
     return $device_hash === $registeredHash;
 }
 
+function getPegawaiIdByUserId($pdo, $user_id) {
+    $stmt = $pdo->prepare("SELECT id FROM pegawai WHERE user_id = :user_id");
+    $stmt->execute([':user_id' => $user_id]);
+    return $stmt->fetchColumn();
+}
+
 function insertQRCode($pdo, $pegawai_id) {
     $kode = substr(str_shuffle('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'), 0, 6);
     $sql = "INSERT INTO qr_code (pegawai_id, kode_unik, created_at, is_used) VALUES (:pegawai_id, :kode_unik, NOW(), 0)";
@@ -158,10 +164,14 @@ function loginUser($pdo, $user, $device_info, $status) {
     ]);
 
     if ($user['role'] === 'karyawan') {
-        insertQRCode($pdo, $user['id']);
+        $pegawaiId = getPegawaiIdByUserId($pdo, $user['id']);
+        if ($pegawaiId) {
+            insertQRCode($pdo, $pegawaiId);
+        }
     }
+    
 
-    header('Location: ' . ($user['role'] == 'owner' ? 'app/pages/owner/absen.php' : 'app/pages/karyawan/schedule.php'));
+    header('Location: ' . ($user['role'] == 'owner' ? 'app/pages/owner/dashboard.php' : 'app/pages/staff/attendance.php'));
     exit;
 }
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
@@ -199,13 +209,14 @@ if ($row['role'] === 'karyawan') {
     if (!$lat || !$lon) {
         $error_message = "Lokasi tidak ditemukan. Aktifkan GPS.";
         $show_error = true;
+        $show_error = true;
     } else {
-        $jarak = hitungJarak($lat, $lon, 3.7571051, 98.2714716);
-        if ($jarak > 0.6) {
+        $jarak = hitungJarak($lat, $lon, 3.752422, 98.256980);
+        if ($jarak > 230) {
             $error_message = "Anda di luar radius kantor (" . round($jarak, 2) . " km)";
             $show_error = true;
         }
-    }
+    }    
 }
 
             
@@ -232,7 +243,7 @@ if ($row['role'] === 'karyawan') {
             }
             
         } catch (PDOException $e) {
-            $error_message = "Terjadi kesalahan sistem. Silakan coba lagi.";
+            $error_message = "Kesalahan sistem: " . $e->getMessage();
             $show_error = true;
         }
     }
@@ -249,7 +260,7 @@ unset($pdo);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Si Hadir - Login</title>
+    <title>Absensi Karyawan - Login</title>
     <link rel="icon" type="image/x-icon" href="assets/icon/favicon.ico" />
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
@@ -442,7 +453,7 @@ unset($pdo);
 <body>
     <div class="container">
         <header class="header">
-            <h1 class="title">Si Hadir</h1>
+            <h1 class="title">Absensi Karyawan</h1>
             <p class="subtitle">
                 Silakan masuk menggunakan akun Anda untuk melanjutkan
             </p>

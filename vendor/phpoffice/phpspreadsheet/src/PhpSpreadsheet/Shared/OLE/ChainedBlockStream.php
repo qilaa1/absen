@@ -85,7 +85,7 @@ class ChainedBlockStream
             }
         }
         if (isset($this->params['size'])) {
-            $this->data = substr($this->data, 0, $this->params['size']); //* @phpstan-ignore-line
+            $this->data = substr($this->data, 0, $this->params['size']);
         }
 
         if ($options & STREAM_USE_PATH) {

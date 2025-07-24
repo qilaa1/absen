@@ -52,7 +52,7 @@ function getEmployeeSchedule($pdo, $userId)
         }
 
         // Create weekly schedule
-        $weekDays = ['senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu', 'minggu'];
+        $weekDays = ['senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu'];
         $schedule = [];
 
         foreach ($weekDays as $day) {
@@ -92,7 +92,7 @@ try {
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
     <meta name="description" content="" />
     <meta name="author" content="" />
-    <title>Si Hadir - Jadwal</title>
+    <title>Absensi Karyawan - Jadwal</title>
     <!-- Favicon-->
     <link rel="icon" type="image/x-icon" href="../../../assets/favicon.ico" />
     <!-- Core theme CSS (includes Bootstrap)-->
@@ -103,7 +103,7 @@ try {
     <style>
         #sidebar-wrapper .sidebar-heading strong {
             font-family: 'Poppins', sans-serif;
-            /* Menggunakan font Poppins hanya untuk Si Hadir */
+            /* Menggunakan font Poppins hanya untuk Absensi Karyawan */
             font-weight: 900;
             /* Menebalkan tulisan */
             font-size: 28px;
@@ -307,7 +307,7 @@ try {
     <div class="d-flex" id="wrapper">
         <!-- Sidebar-->
         <div class="border-end-0 bg-white" id="sidebar-wrapper">
-            <div class="sidebar-heading border-bottom-0"><strong>Si Hadir</strong></div>
+            <div class="sidebar-heading border-bottom-0"><strong>Absensi Karyawan</strong></div>
             <div class="list-group list-group-flush">
                 <a class="list-group-item list-group-item-action list-group-item-light p-3 border-bottom-0"
                     href="attendance.php">
@@ -344,12 +344,6 @@ try {
                             d="M160-200v-440 440-15 15Zm0 80q-33 0-56.5-23.5T80-200v-440q0-33 23.5-56.5T160-720h160v-80q0-33 23.5-56.5T400-880h160q33 0 56.5 23.5T640-800v80h160q33 0 56.5 23.5T880-640v171q-18-13-38-22.5T800-508v-132H160v440h283q3 21 9 41t15 39H160Zm240-600h160v-80H400v80ZM720-40q-83 0-141.5-58.5T520-240q0-83 58.5-141.5T720-440q83 0 141.5 58.5T920-240q0 83-58.5 141.5T720-40Zm20-208v-112h-40v128l86 86 28-28-74-74Z" />
                     </svg>
                     Cuti & Perizinan
-                </a>
-                <a class="list-group-item list-group-item-action list-group-item-light p-3 border-bottom-0" href="/Si_Hadir/web/sihadir/app/scan/index.php">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" class="sidebar-icon" fill="#6c757d">
-                        <path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h280v80H200v560h280v80H200Zm440-160-55-58 102-102H360v-80h327L585-622l55-58 200 200-200 200Z" />
-                    </svg>
-                    Qr
                 </a>
                 <a class="list-group-item list-group-item-action list-group-item-light p-3 border-bottom-0"
                     href="logout.php">

@@ -15,11 +15,10 @@ class Workbook extends WriterPart
      * Write workbook to XML format.
      *
      * @param bool $preCalculateFormulas If true, formulas will be calculated before writing
-     * @param ?bool $forceFullCalc If null, !$preCalculateFormulas
      *
      * @return string XML Output
      */
-    public function writeWorkbook(Spreadsheet $spreadsheet, bool $preCalculateFormulas = false, ?bool $forceFullCalc = null): string
+    public function writeWorkbook(Spreadsheet $spreadsheet, bool $preCalculateFormulas = false): string
     {
         // Create XML writer
         if ($this->getParentWriter()->getUseDiskCaching()) {
@@ -58,7 +57,7 @@ class Workbook extends WriterPart
         (new DefinedNamesWriter($objWriter, $spreadsheet))->write();
 
         // calcPr
-        $this->writeCalcPr($objWriter, $preCalculateFormulas, $forceFullCalc);
+        $this->writeCalcPr($objWriter, $preCalculateFormulas);
 
         $objWriter->endElement();
 
@@ -149,7 +148,7 @@ class Workbook extends WriterPart
      *
      * @param bool $preCalculateFormulas If true, formulas will be calculated before writing
      */
-    private function writeCalcPr(XMLWriter $objWriter, bool $preCalculateFormulas, ?bool $forceFullCalc): void
+    private function writeCalcPr(XMLWriter $objWriter, bool $preCalculateFormulas = true): void
     {
         $objWriter->startElement('calcPr');
 
@@ -161,11 +160,7 @@ class Workbook extends WriterPart
         //    fullCalcOnLoad isn't needed if we will calculate before writing
         $objWriter->writeAttribute('calcCompleted', ($preCalculateFormulas) ? '1' : '0');
         $objWriter->writeAttribute('fullCalcOnLoad', ($preCalculateFormulas) ? '0' : '1');
-        if ($forceFullCalc === null) {
-            $objWriter->writeAttribute('forceFullCalc', $preCalculateFormulas ? '0' : '1');
-        } else {
-            $objWriter->writeAttribute('forceFullCalc', $forceFullCalc ? '1' : '0');
-        }
+        $objWriter->writeAttribute('forceFullCalc', ($preCalculateFormulas) ? '0' : '1');
 
         $objWriter->endElement();
     }

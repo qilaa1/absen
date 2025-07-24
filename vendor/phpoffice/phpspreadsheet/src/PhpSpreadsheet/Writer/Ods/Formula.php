@@ -2,10 +2,8 @@
 
 namespace PhpOffice\PhpSpreadsheet\Writer\Ods;
 
-use Composer\Pcre\Preg;
 use PhpOffice\PhpSpreadsheet\Calculation\Calculation;
 use PhpOffice\PhpSpreadsheet\DefinedName;
-use PhpOffice\PhpSpreadsheet\Shared\StringHelper;
 
 class Formula
 {
@@ -35,13 +33,14 @@ class Formula
 
     private function convertDefinedNames(string $formula): string
     {
-        $splitCount = Preg::matchAllWithOffsets(
+        $splitCount = preg_match_all(
             '/' . Calculation::CALCULATION_REGEXP_DEFINEDNAME . '/mui',
             $formula,
-            $splitRanges
+            $splitRanges,
+            PREG_OFFSET_CAPTURE
         );
 
-        $lengths = array_map([StringHelper::class, 'strlenAllowNull'], array_column($splitRanges[0], 0));
+        $lengths = array_map('strlen', array_column($splitRanges[0], 0));
         $offsets = array_column($splitRanges[0], 1);
         $values = array_column($splitRanges[0], 0);
 
@@ -61,13 +60,14 @@ class Formula
 
     private function convertCellReferences(string $formula, string $worksheetName): string
     {
-        $splitCount = Preg::matchAllWithOffsets(
+        $splitCount = preg_match_all(
             '/' . Calculation::CALCULATION_REGEXP_CELLREF_RELATIVE . '/mui',
             $formula,
-            $splitRanges
+            $splitRanges,
+            PREG_OFFSET_CAPTURE
         );
 
-        $lengths = array_map([StringHelper::class, 'strlenAllowNull'], array_column($splitRanges[0], 0));
+        $lengths = array_map('strlen', array_column($splitRanges[0], 0));
         $offsets = array_column($splitRanges[0], 1);
 
         $worksheets = $splitRanges[2];
@@ -76,7 +76,7 @@ class Formula
 
         // Replace any commas in the formula with semi-colons for Ods
         // If by chance there are commas in worksheet names, then they will be "fixed" again in the loop
-        //    because we've already extracted worksheet names with our Preg::matchAllWithOffsets()
+        //    because we've already extracted worksheet names with our preg_match_all()
         $formula = str_replace(',', ';', $formula);
         while ($splitCount > 0) {
             --$splitCount;
@@ -102,9 +102,9 @@ class Formula
             }
             $newRange .= '.';
 
-            //if (!empty($column)) { // phpstan says always true
-            $newRange .= $column;
-            //}
+            if (!empty($column)) {
+                $newRange .= $column;
+            }
             if (!empty($row)) {
                 $newRange .= $row;
             }

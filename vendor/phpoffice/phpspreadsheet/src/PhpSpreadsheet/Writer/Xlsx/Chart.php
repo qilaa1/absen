@@ -118,7 +118,7 @@ class Chart extends WriterPart
             $this->writeColor($objWriter, $fillColor);
         }
         $borderLines = $chart->getBorderLines();
-        $this->writeLineStyles($objWriter, $borderLines, $chart->getNoBorder());
+        $this->writeLineStyles($objWriter, $borderLines);
         $this->writeEffects($objWriter, $borderLines);
         $objWriter->endElement(); // c:spPr
 
@@ -1912,23 +1912,19 @@ class Chart extends WriterPart
             $this->writeEffects($objWriter, $axisText);
         }
         if ($labelFont !== null) {
-            $defaultFont = ($labelFont->getName() !== Font::DEFAULT_FONT_NAME) ? $labelFont->getName() : '';
-            $fontName = $labelFont->getLatin() ?: $defaultFont;
-            if (!empty($fontName)) {
+            if (!empty($labelFont->getLatin())) {
                 $objWriter->startElement('a:latin');
-                $objWriter->writeAttribute('typeface', $fontName);
+                $objWriter->writeAttribute('typeface', $labelFont->getLatin());
                 $objWriter->endElement();
             }
-            $fontName = $labelFont->getEastAsian() ?: $defaultFont;
-            if (!empty($fontName)) {
+            if (!empty($labelFont->getEastAsian())) {
                 $objWriter->startElement('a:eastAsian');
-                $objWriter->writeAttribute('typeface', $fontName);
+                $objWriter->writeAttribute('typeface', $labelFont->getEastAsian());
                 $objWriter->endElement();
             }
-            $fontName = $labelFont->getComplexScript() ?: $defaultFont;
-            if (!empty($fontName)) {
+            if (!empty($labelFont->getComplexScript())) {
                 $objWriter->startElement('a:complexScript');
-                $objWriter->writeAttribute('typeface', $fontName);
+                $objWriter->writeAttribute('typeface', $labelFont->getComplexScript());
                 $objWriter->endElement();
             }
         }

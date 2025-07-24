@@ -61,7 +61,7 @@ try {
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
     <meta name="description" content="" />
     <meta name="author" content="" />
-    <title>Si Hadir - Riwayat Kehadiran</title>
+    <title>Absensi Karyawan - Riwayat Kehadiran</title>
     <!-- Favicon-->
     <link rel="icon" type="image/x-icon" href="../../../assets/icon/favicon.ico" />
     <!-- Core theme CSS (includes Bootstrap)-->
@@ -138,7 +138,7 @@ try {
     <div class="d-flex" id="wrapper">
         <!-- Sidebar-->
         <div class="border-end-0 bg-white" id="sidebar-wrapper">
-            <div class="sidebar-heading border-bottom-0"><strong>Si Hadir</strong></div>
+            <div class="sidebar-heading border-bottom-0"><strong>Absensi Karyawan</strong></div>
             <div class="list-group list-group-flush">
                 <a class="list-group-item list-group-item-action list-group-item-light p-3 border-bottom-0"
                     href="attendance.php">

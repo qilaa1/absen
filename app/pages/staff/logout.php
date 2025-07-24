@@ -220,7 +220,7 @@ if (isset($pdo)) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Si Hadir - Logout</title>
+    <title>Absensi Karyawan - Logout</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&family=Istok+Web&display=swap"
         rel="stylesheet">
     <style>

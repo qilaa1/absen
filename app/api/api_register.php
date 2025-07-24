@@ -1,6 +1,6 @@
 <?php
 // Koneksi ke database
-$conn = new mysqli("localhost", "root", "", "absen");
+$conn = new mysqli("localhost", "root", "abc54321", "si_hadir");
 
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);

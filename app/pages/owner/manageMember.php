@@ -122,7 +122,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_user'])) {
         $userId = $pdo->lastInsertId();
 
         // Validate hari_libur
-        $validHariLibur = array('senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu', 'minggu');
+        $validHariLibur = array('senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu');
         $hari_libur = strtolower(trim($_POST['hari_libur']));
 
         if (!in_array($hari_libur, $validHariLibur)) {
@@ -276,7 +276,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_user'])) {
         ]);
 
         // Validate hari_libur
-        $validHariLibur = array('senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu', 'minggu');
+        $validHariLibur = array('senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu');
         $hari_libur = strtolower(trim($_POST['edit_hari_libur']));
 
         if (!in_array($hari_libur, $validHariLibur)) {
@@ -334,39 +334,45 @@ if (isset($_POST['delete_user'])) {
     try {
         $pdo->beginTransaction();
 
-        // Ambil ID pegawai
+        // Get pegawai_id first since we'll need it for other deletions
         $stmt = $pdo->prepare("SELECT id FROM pegawai WHERE user_id = :user_id");
         $stmt->execute(['user_id' => $_POST['user_id']]);
         $pegawai = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($pegawai) {
-            $pegawai_id = $pegawai['id'];
+            // Delete from izin first (references pegawai)
+            $stmt = $pdo->prepare("DELETE FROM izin WHERE pegawai_id = :pegawai_id");
+            $stmt->execute(['pegawai_id' => $pegawai['id']]);
 
-            // Hapus dari tabel-tabel yang tergantung pada pegawai_id
-            $tablesToDelete = ['izin', 'cuti', 'absensi', 'jadwal_shift', 'qr_code'];
-            foreach ($tablesToDelete as $table) {
-                $stmt = $pdo->prepare("DELETE FROM $table WHERE pegawai_id = :pegawai_id");
-                $stmt->execute(['pegawai_id' => $pegawai_id]);
-            }
+            // Delete from cuti (references pegawai)
+            $stmt = $pdo->prepare("DELETE FROM cuti WHERE pegawai_id = :pegawai_id");
+            $stmt->execute(['pegawai_id' => $pegawai['id']]);
 
-            // Hapus dari pegawai
+            // Delete from absensi (references pegawai)
+            $stmt = $pdo->prepare("DELETE FROM absensi WHERE pegawai_id = :pegawai_id");
+            $stmt->execute(['pegawai_id' => $pegawai['id']]);
+
+            // Delete from jadwal_shift (references pegawai)
+            $stmt = $pdo->prepare("DELETE FROM jadwal_shift WHERE pegawai_id = :pegawai_id");
+            $stmt->execute(['pegawai_id' => $pegawai['id']]);
+
+            // Delete from pegawai (references user)
             $stmt = $pdo->prepare("DELETE FROM pegawai WHERE id = :pegawai_id");
-            $stmt->execute(['pegawai_id' => $pegawai_id]);
+            $stmt->execute(['pegawai_id' => $pegawai['id']]);
         }
 
-        // Hapus dari log_akses
+        // Delete from log_akses (references user)
         $stmt = $pdo->prepare("DELETE FROM log_akses WHERE user_id = :user_id");
         $stmt->execute(['user_id' => $_POST['user_id']]);
 
-        // (Opsional) Hapus dari otp_code jika ada
-        if (!empty($_POST['otp_id'])) {
-            $stmt = $pdo->prepare("DELETE FROM otp_code WHERE id = :otp_id");
-            $stmt->execute(['otp_id' => $_POST['otp_id']]);
-        }
-
-        // Terakhir, hapus dari users
+        // Finally delete from users
         $stmt = $pdo->prepare("DELETE FROM users WHERE id = :user_id");
         $stmt->execute(['user_id' => $_POST['user_id']]);
+
+        if ($otpId) {
+            $stmt = $pdo->prepare("DELETE FROM otp_code WHERE id = :otp_id");
+            $stmt->execute(['otp_id' => $otpId]);
+        }
 
         $pdo->commit();
         $_SESSION['alert'] = [
@@ -383,7 +389,6 @@ if (isset($_POST['delete_user'])) {
     header('Location: ' . $_SERVER['PHP_SELF']);
     exit;
 }
-
 
 // Di bagian remove device
 if (isset($_POST['remove_device'])) {
@@ -414,7 +419,7 @@ if (isset($_POST['remove_device'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
     <meta name="description" content="" />
     <meta name="author" content="" />
-    <title>Si Hadir - Manajemen Staff</title>
+    <title>Absensi Karyawan - Manajemen Staff</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <!-- Script untuk Bootstrap JS (jika perlu) -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
@@ -433,7 +438,7 @@ if (isset($_POST['remove_device'])) {
         /* Mengatur font Poppins hanya untuk <strong> di dalam sidebar-heading */
         #sidebar-wrapper .sidebar-heading strong {
             font-family: 'Poppins', sans-serif;
-            /* Menggunakan font Poppins hanya untuk Si Hadir */
+            /* Menggunakan font Poppins hanya untuk Absensi Karyawan */
             font-weight: 900;
             /* Menebalkan tulisan */
             font-size: 28px;
@@ -538,7 +543,7 @@ if (isset($_POST['remove_device'])) {
     <div class="d-flex" id="wrapper">
         <!-- Sidebar-->
         <div class="border-end-0 bg-white" id="sidebar-wrapper">
-            <div class="sidebar-heading border-bottom-0"><strong>Si Hadir</strong></div>
+            <div class="sidebar-heading border-bottom-0"><strong>Absensi Karyawan</strong></div>
             <div class="list-group list-group-flush">
                 <a class="list-group-item list-group-item-action list-group-item-light p-3 border-bottom-0"
                     href="dashboard.php">
@@ -574,6 +579,12 @@ if (isset($_POST['remove_device'])) {
                             d="M16 11c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 3-1.34 3-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V20h14v-3.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 2.02 1.97 3.45V20h6v-3.5c0-2.33-4.67-3.5-7-3.5z" />
                     </svg>
                     Manajemen Staff
+                </a>
+                <a class="list-group-item list-group-item-action list-group-item-light p-3 border-bottom-0" href="/sihadir/app/scan/index.php">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" class="sidebar-icon" fill="#6c757d">
+                        <path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h280v80H200v560h280v80H200Zm440-160-55-58 102-102H360v-80h327L585-622l55-58 200 200-200 200Z" />
+                    </svg>
+                    Qr
                 </a>
                 <a class="list-group-item list-group-item-action list-group-item-light p-3 border-bottom-0"
                     href="permit.php">
@@ -809,7 +820,6 @@ if (isset($_POST['remove_device'])) {
                                         <option value="kamis">Kamis</option>
                                         <option value="jumat">Jumat</option>
                                         <option value="sabtu">Sabtu</option>
-                                        <option value="minggu">Minggu</option>
                                     </select>
                                 </div>
 
@@ -916,7 +926,6 @@ if (isset($_POST['remove_device'])) {
                                 <option value="kamis">Kamis</option>
                                 <option value="jumat">Jumat</option>
                                 <option value="sabtu">Sabtu</option>
-                                <option value="minggu">Minggu</option>
                             </select>
                         </div>
 

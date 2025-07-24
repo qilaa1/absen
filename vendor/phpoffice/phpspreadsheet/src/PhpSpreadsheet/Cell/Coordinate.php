@@ -271,7 +271,8 @@ abstract class Coordinate
     private static function validateReferenceAndGetData($reference): array
     {
         $data = [];
-        if (1 !== preg_match(self::FULL_REFERENCE_REGEX, $reference, $matches)) {
+        preg_match(self::FULL_REFERENCE_REGEX, $reference, $matches);
+        if (count($matches) === 0) {
             return ['type' => 'invalid'];
         }
 

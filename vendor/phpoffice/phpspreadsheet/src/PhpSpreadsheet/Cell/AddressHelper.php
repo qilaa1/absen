@@ -136,7 +136,9 @@ class AddressHelper
         ?int $currentRowNumber = null,
         ?int $currentColumnNumber = null
     ): string {
-        if (1 !== preg_match(Coordinate::A1_COORDINATE_REGEX, $address, $cellReference)) {
+        $validityCheck = preg_match(Coordinate::A1_COORDINATE_REGEX, $address, $cellReference);
+
+        if ($validityCheck === 0) {
             throw new Exception('Invalid A1-format Cell Reference');
         }
 

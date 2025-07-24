@@ -2,6 +2,9 @@
 session_start();
 require_once '../../../app/auth/auth.php';
 
+// Set timezone ke WIB (Asia/Jakarta)
+date_default_timezone_set('Asia/Jakarta');
+
 // Check if user is logged in
 if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
     header('Location: ../../../login.php');
@@ -10,15 +13,11 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
 
 // Check if the user role is employee
 if (isset($_SESSION['role']) && $_SESSION['role'] !== 'owner') {
-    // Unset session variables and destroy session
     session_unset();
     session_destroy();
-
-    // Set headers to prevent caching
     header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
     header('Cache-Control: post-check=0, pre-check=0', false);
     header('Pragma: no-cache');
-
     header('Location: ../../../login.php');
     exit;
 }
@@ -36,8 +35,6 @@ function getEarliestAttendanceDate($pdo)
     }
 }
 
-
-// Update the getAttendanceStats function to combine cuti and izin
 function getAttendanceStats($pdo, $date, $shift = 'all')
 {
     $params = ['date' => $date];
@@ -53,7 +50,7 @@ function getAttendanceStats($pdo, $date, $shift = 'all')
 
     $query .= " GROUP BY status_kehadiran";
 
-    $stats = array(
+    $stats = [
         'hadir' => 0,
         'terlambat' => 0,
         'alpha' => 0,
@@ -61,7 +58,7 @@ function getAttendanceStats($pdo, $date, $shift = 'all')
         'izin' => 0,
         'pulang_dahulu' => 0,
         'tidak_absen_pulang' => 0
-    );
+    ];
 
     try {
         $stmt = $pdo->prepare($query);
@@ -79,7 +76,6 @@ function getAttendanceStats($pdo, $date, $shift = 'all')
     return $stats;
 }
 
-// Function to get detailed attendance records
 function getAttendanceRecords($pdo, $date, $search = '', $shift = 'all')
 {
     $params = ['date' => $date];
@@ -118,7 +114,6 @@ function getAttendanceRecords($pdo, $date, $search = '', $shift = 'all')
     }
 }
 
-// Function to get shifts for the dropdown
 function getShifts($pdo)
 {
     try {
@@ -133,35 +128,30 @@ function getShifts($pdo)
         return array();
     }
 }
+
 $earliestDate = getEarliestAttendanceDate($pdo);
 
-// Input validation with earliest date check
 $selectedDate = isset($_GET['date']) ? $_GET['date'] : date('Y-m-d');
-
-// Check if the selected date is a valid format and is not earlier than the earliest date
 if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $selectedDate) || $selectedDate < $earliestDate) {
-    // If invalid or earlier than earliest date, set to today
     $selectedDate = date('Y-m-d');
 }
 
 $searchQuery = isset($_GET['search']) ? trim($_GET['search']) : '';
 $selectedShift = isset($_GET['shift']) ? $_GET['shift'] : 'all';
 
-// Get the statistics and records with error handling
 try {
     $stats = getAttendanceStats($pdo, $selectedDate, $selectedShift);
     $records = getAttendanceRecords($pdo, $selectedDate, $searchQuery, $selectedShift);
     $shifts = getShifts($pdo);
-
-    // Format date for display
     $displayDate = date('l, d F Y', strtotime($selectedDate));
 } catch (Exception $e) {
     error_log("General error in attendance monitor: " . $e->getMessage());
-    $stats = array('hadir' => 0, 'alpha' => 0, 'izin' => 0, 'terlambat' => 0, 'cuti' => 0, 'pulang_dahulu' => 0);
+    $stats = array_fill_keys(['hadir', 'alpha', 'izin', 'terlambat', 'cuti', 'pulang_dahulu'], 0);
     $records = $pdo->prepare("SELECT 1 WHERE 1=0");
-    $shifts = array();
+    $shifts = [];
     $displayDate = date('l, d F Y');
 }
+
 ?>
 
 <!DOCTYPE html>
@@ -172,7 +162,7 @@ try {
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
     <meta name="description" content="" />
     <meta name="author" content="" />
-    <title>Si Hadir - Monitor Presensi</title>
+    <title>Absensi Karyawan - Monitor Presensi</title>
     <!-- Favicon-->
     <link rel="icon" type="image/x-icon" href="../../../assets/icon/favicon.ico" />
     <!-- Core theme CSS (includes Bootstrap)-->
@@ -186,7 +176,7 @@ try {
         /* Mengatur font Poppins hanya untuk <strong> di dalam sidebar-heading */
         #sidebar-wrapper .sidebar-heading strong {
             font-family: 'Poppins', sans-serif;
-            /* Menggunakan font Poppins hanya untuk Si Hadir */
+            /* Menggunakan font Poppins hanya untuk Absensi Karyawan */
             font-weight: 900;
             /* Menebalkan tulisan */
             font-size: 28px;
@@ -240,7 +230,7 @@ try {
     <div class="d-flex" id="wrapper">
         <!-- Sidebar-->
         <div class="border-end-0 bg-white" id="sidebar-wrapper">
-            <div class="sidebar-heading border-bottom-0"><strong>Si Hadir</strong></div>
+            <div class="sidebar-heading border-bottom-0"><strong>Absensi Karyawan</strong></div>
             <div class="list-group list-group-flush">
                 <a class="list-group-item list-group-item-action list-group-item-light p-3 border-bottom-0"
                     href="dashboard.php">
@@ -276,6 +266,12 @@ try {
                             d="M16 11c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 3-1.34 3-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V20h14v-3.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 2.02 1.97 3.45V20h6v-3.5c0-2.33-4.67-3.5-7-3.5z" />
                     </svg>
                     Manajemen Staff
+                </a>
+                <a class="list-group-item list-group-item-action list-group-item-light p-3 border-bottom-0" href="/absensi/app/scan/index.php">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" class="sidebar-icon" fill="#6c757d">
+                        <path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h280v80H200v560h280v80H200Zm440-160-55-58 102-102H360v-80h327L585-622l55-58 200 200-200 200Z" />
+                    </svg>
+                    Qr
                 </a>
                 <a class="list-group-item list-group-item-action list-group-item-light p-3 border-bottom-0"
                     href="permit.php">
@@ -409,10 +405,11 @@ try {
                         <tbody class="bg-white divide-y divide-gray-200">
                             <?php while ($record = $records->fetch(PDO::FETCH_ASSOC)): ?>
                                 <tr>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <?php echo htmlspecialchars($record['nama_pegawai']); ?>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
+                                <td class="px-6 py-4 whitespace-normal break-words max-w-[150px]">
+    <?php echo htmlspecialchars($record['nama_pegawai']); ?>
+</td>
+
+                                    <td class="px-6 py-4 whitespace-normal break-words max-w-[150px]">
                                         <?php
                                         echo $record['nama_shift']
                                             ? htmlspecialchars($record['nama_shift']) . ' (' .

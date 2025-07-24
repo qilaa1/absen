@@ -46,15 +46,11 @@ class Rule implements Renderable, Commentable
 
     /**
      * @var int
-     *
-     * @internal since 8.8.0
      */
     protected $iColNo;
 
     /**
      * @var array<array-key, Comment>
-     *
-     * @internal since 8.8.0
      */
     protected $aComments;
 
@@ -75,18 +71,14 @@ class Rule implements Renderable, Commentable
     }
 
     /**
-     * @param array<int, Comment> $commentsBeforeRule
-     *
      * @return Rule
      *
      * @throws UnexpectedEOFException
      * @throws UnexpectedTokenException
-     *
-     * @internal since V8.8.0
      */
-    public static function parse(ParserState $oParserState, $commentsBeforeRule = [])
+    public static function parse(ParserState $oParserState)
     {
-        $aComments = \array_merge($commentsBeforeRule, $oParserState->consumeWhiteSpace());
+        $aComments = $oParserState->consumeWhiteSpace();
         $oRule = new Rule(
             $oParserState->parseIdentifier(!$oParserState->comes("--")),
             $oParserState->currentLine(),
@@ -116,30 +108,22 @@ class Rule implements Renderable, Commentable
             $oParserState->consume(';');
         }
 
+        $oParserState->consumeWhiteSpace();
+
         return $oRule;
     }
 
     /**
-     * Returns a list of delimiters (or separators).
-     * The first item is the innermost separator (or, put another way, the highest-precedence operator).
-     * The sequence continues to the outermost separator (or lowest-precedence operator).
-     *
      * @param string $sRule
      *
-     * @return list<non-empty-string>
+     * @return array<int, string>
      */
     private static function listDelimiterForRule($sRule)
     {
         if (preg_match('/^font($|-)/', $sRule)) {
             return [',', '/', ' '];
         }
-
-        switch ($sRule) {
-            case 'src':
-                return [' ', ','];
-            default:
-                return [',', ' ', '/'];
-        }
+        return [',', ' ', '/'];
     }
 
     /**
@@ -309,8 +293,6 @@ class Rule implements Renderable, Commentable
      * @param int $iModifier
      *
      * @return void
-     *
-     * @deprecated since V8.8.0, will be removed in V9.0
      */
     public function addIeHack($iModifier)
     {
@@ -321,8 +303,6 @@ class Rule implements Renderable, Commentable
      * @param array<int, int> $aModifiers
      *
      * @return void
-     *
-     * @deprecated since V8.8.0, will be removed in V9.0
      */
     public function setIeHack(array $aModifiers)
     {
@@ -331,8 +311,6 @@ class Rule implements Renderable, Commentable
 
     /**
      * @return array<int, int>
-     *
-     * @deprecated since V8.8.0, will be removed in V9.0
      */
     public function getIeHack()
     {
@@ -359,8 +337,6 @@ class Rule implements Renderable, Commentable
 
     /**
      * @return string
-     *
-     * @deprecated in V8.8.0, will be removed in V9.0.0. Use `render` instead.
      */
     public function __toString()
     {
